@@ -1,0 +1,17 @@
+prepare:
+  train_size: 0.8
+  random_state: 42
+  min_text_length: 10
+
+tfidf_train:
+  max_features: 5000
+  ngram_range: [1, 2]
+  min_df: 2
+  max_df: 0.8
+
+transformer_train:
+  model_name: "distilbert-base-multilingual-cased"
+  max_length: 512
+  batch_size: 16
+  learning_rate: 2e-5
+  num_epochs: 3

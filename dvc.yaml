@@ -1,0 +1,51 @@
+stages:
+  prepare_data:
+    cmd: python src/data_preparation/prepare_data.py
+    deps:
+      - data/raw/service_tickets.csv
+      - src/data_preparation/prepare_data.py
+    params:
+      - prepare.train_size
+      - prepare.random_state
+      - prepare.min_text_length
+    outs:
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - data/processed/label_encoder.pkl
+    metrics:
+      - metrics/data_preparation.json
+
+  train_tfidf:
+    cmd: python src/tfidf_service/train_tfidf.py
+    deps:
+      - data/processed/train.csv
+      - src/tfidf_service/train_tfidf.py
+    params:
+      - tfidf_train
+    outs:
+      - models/tfidf_model.pkl
+      - models/tfidf_vectorizer.pkl
+    metrics:
+      - metrics/tfidf_metrics.json
+
+  train_transformer:
+    cmd: python src/transformer_service/train_transformer.py
+    deps:
+      - data/processed/train.csv
+      - src/transformer_service/train_transformer.py
+    params:
+      - transformer_train
+    outs:
+      - models/transformer_model/
+    metrics:
+      - metrics/transformer_metrics.json
+
+  evaluate_models:
+    cmd: python src/evaluate_models.py
+    deps:
+      - data/processed/test.csv
+      - models/tfidf_model.pkl
+      - models/transformer_model/
+      - src/evaluate_models.py
+    metrics:
+      - metrics/model_comparison.json
