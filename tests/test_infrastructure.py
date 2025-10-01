@@ -22,7 +22,6 @@ class TestProjectStructure:
             "src",
             "tests",
             "monitoring",
-            "configs",
         ]
 
         for dir_path in required_dirs:

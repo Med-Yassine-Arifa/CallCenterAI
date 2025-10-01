@@ -36,3 +36,16 @@ bandit==1.7.5
 # Utilities
 python-dotenv==1.0.0
 pydantic==2.5.1
+
+
+pre-commit==4.3.0
+
+notebook==7.4.7
+
+seaborn==0.13.2
+
+
+unidecode==1.4.0
+
+
+nltk==3.9.2
