@@ -1,0 +1,97 @@
+schema: '2.0'
+stages:
+  prepare_data:
+    cmd: python src/data_preparation/prepare_data.py
+    deps:
+    - path: data/raw/service_tickets.csv
+      hash: md5
+      md5: a05aa13d753884547cc46e6f525bfb82
+      size: 14568920
+    - path: src/data_preparation/prepare_data.py
+      hash: md5
+      md5: 08060da3ff5c9185f1b30e9d296f4800
+      size: 8093
+    params:
+      params.yaml:
+        prepare.min_text_length: 10
+        prepare.random_state: 42
+        prepare.train_size: 0.8
+    outs:
+    - path: data/processed/label_encoder.pkl
+      hash: md5
+      md5: 7f7ac1d553d6f88e5ecce4a97118077f
+      size: 355
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 724c3c30e3823fbbe5a3bcd5606fbae3
+      size: 5777220
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 024fe985f9fcaf7a10ff0af48c8e2f51
+      size: 22897494
+    - path: metrics/data_preparation.json
+      hash: md5
+      md5: a396a37b8e09bc5a628d4f35026a0681
+      size: 1079
+  train_tfidf:
+    cmd: python -m src.tfidf_service.train_tfidf
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 024fe985f9fcaf7a10ff0af48c8e2f51
+      size: 22897494
+    - path: src/tfidf_service/train_tfidf.py
+      hash: md5
+      md5: 54cf2684ea7f00fd6466bf6338409210
+      size: 8226
+    params:
+      params.yaml:
+        tfidf_train:
+          max_features: 5000
+          ngram_range:
+          - 1
+          - 2
+          min_df: 2
+          max_df: 0.8
+    outs:
+    - path: metrics/tfidf_metrics.json
+      hash: md5
+      md5: dc26c1c233fea00873960f10144bc1db
+      size: 3487
+    - path: models/tfidf_model.pkl
+      hash: md5
+      md5: 24177c5151c4d3484abaf79bec887ab4
+      size: 22165477
+    - path: models/tfidf_vectorizer.pkl
+      hash: md5
+      md5: 5cd5bb46538313932237bc5bfada8c41
+      size: 6374366
+  train_transformer:
+    cmd: python -m src.transformer_service.train_transformer
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 024fe985f9fcaf7a10ff0af48c8e2f51
+      size: 22897494
+    - path: src/transformer_service/train_transformer.py
+      hash: md5
+      md5: 3bf58cf5a3ef05e89dd338aa278b28ab
+      size: 8278
+    params:
+      params.yaml:
+        transformer_train:
+          model_name: distilbert-base-multilingual-cased
+          max_length: 512
+          batch_size: 16
+          learning_rate: 2e-05
+          num_epochs: 3
+    outs:
+    - path: metrics/transformer_metrics.json
+      hash: md5
+      md5: c18194172dac9ec91791c42e59949665
+      size: 805
+    - path: models/transformer_model/
+      hash: md5
+      md5: 08585c9e52e5e47af7cda59ad5e6afdc.dir
+      size: 2169389584
+      nfiles: 14

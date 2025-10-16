@@ -16,7 +16,7 @@ stages:
       - metrics/data_preparation.json
 
   train_tfidf:
-    cmd: python src/tfidf_service/train_tfidf.py
+    cmd: python -m src.tfidf_service.train_tfidf
     deps:
       - data/processed/train.csv
       - src/tfidf_service/train_tfidf.py
@@ -29,23 +29,23 @@ stages:
       - metrics/tfidf_metrics.json
 
   train_transformer:
-    cmd: python src/transformer_service/train_transformer.py
+    cmd: python -m src.transformer_service.train_transformer
     deps:
       - data/processed/train.csv
       - src/transformer_service/train_transformer.py
     params:
       - transformer_train
     outs:
-      - models/transformer_model/
+      - models/transformer_model/final_checkpoint
     metrics:
       - metrics/transformer_metrics.json
 
-  evaluate_models:
-    cmd: python src/evaluate_models.py
-    deps:
-      - data/processed/test.csv
-      - models/tfidf_model.pkl
-      - models/transformer_model/
-      - src/evaluate_models.py
-    metrics:
-      - metrics/model_comparison.json
+  #evaluate_models:
+  #  cmd: python src/evaluate_models.py
+  #  deps:
+  #    - data/processed/test.csv
+  #    - models/tfidf_model.pkl
+  #    - models/transformer_model/
+  #    - src/evaluate_models.py
+  #  metrics:
+  #    - metrics/model_comparison.json
