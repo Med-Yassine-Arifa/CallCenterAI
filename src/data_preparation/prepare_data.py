@@ -1,11 +1,11 @@
-import re
 import json
 import pickle
+import re
 from pathlib import Path
-from typing import Tuple, Dict, Any
+from typing import Any, Dict, Tuple
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import yaml
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -18,7 +18,6 @@ except Exception:
     unidecode = None
 
 
-
 def load_params(path: str = "params.yaml") -> Dict[str, Any]:
     """
     Charger les paramètres depuis params.yaml (avec valeurs par défaut si absent)
@@ -29,7 +28,7 @@ def load_params(path: str = "params.yaml") -> Dict[str, Any]:
             "train_size": 0.8,
             "random_state": 42,
             "remove_stopwords": False,
-            "use_lemmatization": False
+            "use_lemmatization": False,
         }
     }
     p = defaults
@@ -85,9 +84,9 @@ def clean_text(text: str, remove_accents: bool = True) -> str:
     return text
 
 
-def tokenize_and_normalize(texts: pd.Series,
-                           remove_stopwords: bool = False,
-                           use_lemmatization: bool = False) -> pd.Series:
+def tokenize_and_normalize(
+    texts: pd.Series, remove_stopwords: bool = False, use_lemmatization: bool = False
+) -> pd.Series:
     """
     Tokenize and optionally remove stopwords / lemmatize.
     This returns a joined string (ready for vectorizers).
@@ -127,15 +126,19 @@ def analyze_dataset(df: pd.DataFrame) -> dict:
         "total_samples": len(df),
         "columns": list(df.columns),
         "missing_values": df.isnull().sum().to_dict(),
-        "unique_categories": int(df["Topic_group"].nunique()) if "Topic_group" in df.columns else 0,
-        "category_distribution": df["Topic_group"].value_counts().to_dict() if "Topic_group" in df.columns else {},
+        "unique_categories": int(df["Topic_group"].nunique())
+        if "Topic_group" in df.columns
+        else 0,
+        "category_distribution": df["Topic_group"].value_counts().to_dict()
+        if "Topic_group" in df.columns
+        else {},
         "text_length_stats": {
             "mean": float(text_lengths.mean()),
             "median": float(text_lengths.median()),
             "std": float(text_lengths.std()),
             "min": int(text_lengths.min()),
-            "max": int(text_lengths.max())
-        }
+            "max": int(text_lengths.max()),
+        },
     }
     return stats
 
@@ -178,7 +181,9 @@ def prepare_data() -> Tuple[pd.DataFrame, pd.DataFrame, LabelEncoder, dict]:
     print(f"Supprimé {initial_size - len(df)} lignes avec valeurs manquantes")
 
     # Clean text
-    df["Document_clean"] = df["Document"].apply(lambda t: clean_text(t, remove_accents=True))
+    df["Document_clean"] = df["Document"].apply(
+        lambda t: clean_text(t, remove_accents=True)
+    )
 
     # Filter by min length
     min_length = int(params.get("min_text_length", 10))
@@ -222,16 +227,15 @@ def prepare_data() -> Tuple[pd.DataFrame, pd.DataFrame, LabelEncoder, dict]:
     value_counts = df["Topic_encoded"].value_counts()
     rare_classes = (value_counts < 2).sum()
     if rare_classes > 0:
-        print(f"⚠  {rare_classes} classes have <2 samples; stratified split will be skipped.")
+        print(
+            f"⚠  {rare_classes} classes have <2 samples; stratified split will be skipped."
+        )
         stratify_col = None
     else:
         stratify_col = df["Topic_encoded"]
 
     train_df, test_df = train_test_split(
-        df,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=stratify_col
+        df, test_size=test_size, random_state=random_state, stratify=stratify_col
     )
 
     print(f"Train: {len(train_df)}, Test: {len(test_df)}")

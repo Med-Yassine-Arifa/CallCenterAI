@@ -1,0 +1,68 @@
+schema: '2.0'
+stages:
+  prepare_data:
+    cmd: python src/data_preparation/prepare_data.py
+    deps:
+    - path: data/raw/service_tickets.csv
+      hash: md5
+      md5: a05aa13d753884547cc46e6f525bfb82
+      size: 14568920
+    - path: src/data_preparation/prepare_data.py
+      hash: md5
+      md5: fd13c36f097720bf22898bf9dd82bbd3
+      size: 9050
+    params:
+      params.yaml:
+        prepare.min_text_length: 10
+        prepare.random_state: 42
+        prepare.train_size: 0.8
+    outs:
+    - path: data/processed/label_encoder.pkl
+      hash: md5
+      md5: 7f7ac1d553d6f88e5ecce4a97118077f
+      size: 355
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 724c3c30e3823fbbe5a3bcd5606fbae3
+      size: 5777220
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 024fe985f9fcaf7a10ff0af48c8e2f51
+      size: 22897494
+    - path: metrics/data_preparation.json
+      hash: md5
+      md5: a396a37b8e09bc5a628d4f35026a0681
+      size: 1079
+  train_tfidf:
+    cmd: python -m src.tfidf_service.train_tfidf
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 024fe985f9fcaf7a10ff0af48c8e2f51
+      size: 22897494
+    - path: src/tfidf_service/train_tfidf.py
+      hash: md5
+      md5: 3bd2022f8a3af7cc5103c043b280873e
+      size: 8168
+    params:
+      params.yaml:
+        tfidf_train:
+          max_features: 5000
+          ngram_range:
+          - 1
+          - 2
+          min_df: 2
+          max_df: 0.8
+    outs:
+    - path: metrics/tfidf_metrics.json
+      hash: md5
+      md5: 4d4ba4a020495743dd902de726497948
+      size: 3488
+    - path: models/tfidf_model.pkl
+      hash: md5
+      md5: 01c337593af2bcfc8feba39b8e386931
+      size: 22165477
+    - path: models/tfidf_vectorizer.pkl
+      hash: md5
+      md5: 56c138ec885cef7d4bfbfc82ebbb3ae9
+      size: 6374366

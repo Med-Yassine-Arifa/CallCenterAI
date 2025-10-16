@@ -1,0 +1,52 @@
+{
+  "total_samples": 47837,
+  "columns": [
+    "Document",
+    "Topic_group"
+  ],
+  "missing_values": {
+    "Document": 0,
+    "Topic_group": 0
+  },
+  "unique_categories": 8,
+  "category_distribution": {
+    "Hardware": 13617,
+    "HR Support": 10915,
+    "Access": 7125,
+    "Miscellaneous": 7060,
+    "Storage": 2777,
+    "Purchase": 2464,
+    "Internal Project": 2119,
+    "Administrative rights": 1760
+  },
+  "text_length_stats": {
+    "mean": 291.8812634571566,
+    "median": 175.0,
+    "std": 388.1711998795508,
+    "min": 7,
+    "max": 7015
+  },
+  "final_samples": 47834,
+  "train_samples": 38267,
+  "test_samples": 9567,
+  "classes": [
+    "Access",
+    "Administrative rights",
+    "HR Support",
+    "Hardware",
+    "Internal Project",
+    "Miscellaneous",
+    "Purchase",
+    "Storage"
+  ],
+  "class_counts": {
+    "Hardware": 13615,
+    "HR Support": 10915,
+    "Access": 7125,
+    "Miscellaneous": 7059,
+    "Storage": 2777,
+    "Purchase": 2464,
+    "Internal Project": 2119,
+    "Administrative rights": 1760
+  }
+}
