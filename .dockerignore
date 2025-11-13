@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+# Data
+data/raw/*.csv
+*.pkl
+*.joblib
+# MLflow
+mlruns/
+mlflow.db
+# Git
+.git/
+.gitignore
+# Tests
+tests/
+htmlcov/
+.coverage
+# Documentation
+docs/
+*.md
+# IDE
+.vscode/
+.idea/
+# DVC
+.dvc/cache/
