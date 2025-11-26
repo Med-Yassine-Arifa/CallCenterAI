@@ -1,0 +1,205 @@
+version: '3.8'
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  callcenter-network:
+    driver: bridge
+    name: callcenter-network
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  mlflow-data:
+    name: mlflow-data
+  prometheus-data:
+    name: prometheus-data
+  grafana-data:
+    name: grafana-data
+
+# =============================================================================
+# SERVICES
+# =============================================================================
+services:
+  # ---------------------------------------------------------------------------
+  # Service TF-IDF
+  # ---------------------------------------------------------------------------
+  tfidf-service:
+    build:
+      context: .
+      dockerfile: docker/tfidf_service/Dockerfile
+    container_name: tfidf-service
+    ports:
+      - "8001:8001"
+    networks:
+      - callcenter-network
+    environment:
+      - SERVICE_NAME=tfidf-service
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ---------------------------------------------------------------------------
+  # Service Transformer
+  # ---------------------------------------------------------------------------
+  transformer-service:
+    build:
+      context: .
+      dockerfile: docker/transformer_service/Dockerfile
+    container_name: transformer-service
+    ports:
+      - "8002:8002"
+    networks:
+      - callcenter-network
+    environment:
+      - SERVICE_NAME=transformer-service
+      - LOG_LEVEL=INFO
+      - TRANSFORMERS_CACHE=/app/.cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  # ---------------------------------------------------------------------------
+  # Agent IA
+  # ---------------------------------------------------------------------------
+  agent-service:
+    build:
+      context: .
+      dockerfile: docker/agent_service/Dockerfile
+    container_name: agent-service
+    ports:
+      - "8003:8003"
+    networks:
+      - callcenter-network
+    environment:
+      - SERVICE_NAME=agent-service
+      - LOG_LEVEL=INFO
+      - TFIDF_URL=http://tfidf-service:8001
+      - TRANSFORMER_URL=http://transformer-service:8002
+    depends_on:
+      tfidf-service:
+        condition: service_healthy
+      transformer-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ---------------------------------------------------------------------------
+  # MLflow Server
+  # ---------------------------------------------------------------------------
+  mlflow:
+    image: python:3.11-slim
+    container_name: mlflow-server
+    ports:
+      - "5000:5000"
+    networks:
+      - callcenter-network
+    volumes:
+      - mlflow-data:/mlflow
+    command: >
+      bash -c "pip install mlflow==2.8.1 &&
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:///mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Prometheus
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - callcenter-network
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - tfidf-service
+      - transformer-service
+      - agent-service
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Grafana
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - callcenter-network
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped

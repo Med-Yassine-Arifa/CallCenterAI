@@ -18,7 +18,7 @@ class TransformerModelLoader:
 
     def __init__(
         self,
-        model_path: str = "models/transformer_model",
+        model_path: str = "models/transformer",
         encoder_path: str = "data/processed/label_encoder.pkl",
     ):
         self.model_path = Path(model_path)

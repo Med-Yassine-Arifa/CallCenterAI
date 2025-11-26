@@ -21,14 +21,6 @@ stages:
       hash: md5
       md5: 7f7ac1d553d6f88e5ecce4a97118077f
       size: 355
-    - path: data/processed/test.csv
-      hash: md5
-      md5: 724c3c30e3823fbbe5a3bcd5606fbae3
-      size: 5777220
-    - path: data/processed/train.csv
-      hash: md5
-      md5: 024fe985f9fcaf7a10ff0af48c8e2f51
-      size: 22897494
     - path: metrics/data_preparation.json
       hash: md5
       md5: a396a37b8e09bc5a628d4f35026a0681
@@ -56,15 +48,15 @@ stages:
     outs:
     - path: metrics/tfidf_metrics.json
       hash: md5
-      md5: 3b2ad0e731f71969f7e876abd8cdf4c9
-      size: 3488
+      md5: 5b97daac1e900bce519339565ef517c6
+      size: 3486
     - path: models/tfidf_model.pkl
       hash: md5
-      md5: 55f86d2d256ea6d619d747bf1e50c384
+      md5: 0d0f4e19d53c61513da0b08c2cd0447e
       size: 22165477
     - path: models/tfidf_vectorizer.pkl
       hash: md5
-      md5: 621d3dc9cbdf474ac09f52d853b197e0
+      md5: 2d8439f1a08a1438e9f3ac298ec1d337
       size: 6374366
   train_transformer:
     cmd: python -m src.transformer_service.train_transformer
@@ -90,8 +82,19 @@ stages:
       hash: md5
       md5: 561852e064b414be21fe8f00bd8d6c79
       size: 801
-    - path: models/transformer_model
+    - path: models/transformer_model/config.json
       hash: md5
-      md5: 666413124910686b4ec4b413e7d39734.dir
-      size: 2169389568
-      nfiles: 14
+      md5: 7b86752981053a82d6cbe3815ba10f86
+      size: 1042
+    - path: models/transformer_model/special_tokens_map.json
+      hash: md5
+      md5: 4725a11f0c217363800cfbc4a6c49a1e
+      size: 132
+    - path: models/transformer_model/tokenizer.json
+      hash: md5
+      md5: 35e0daebe98eb319ded65778c122315f
+      size: 2919362
+    - path: models/transformer_model/tokenizer_config.json
+      hash: md5
+      md5: 83346f597506d1769f8454da11247c91
+      size: 1284

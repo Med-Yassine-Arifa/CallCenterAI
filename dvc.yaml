@@ -9,8 +9,6 @@ stages:
       - prepare.random_state
       - prepare.min_text_length
     outs:
-      - data/processed/train.csv
-      - data/processed/test.csv
       - data/processed/label_encoder.pkl
     metrics:
       - metrics/data_preparation.json
@@ -28,17 +26,20 @@ stages:
     metrics:
       - metrics/tfidf_metrics.json
 
-  train_transformer:
-    cmd: python -m src.transformer_service.train_transformer
-    deps:
-      - data/processed/train.csv
-      - src/transformer_service/train_transformer.py
-    params:
-      - transformer_train
-    outs:
-      - models/transformer_model/final_checkpoint
-    metrics:
-      - metrics/transformer_metrics.json
+  #train_transformer:
+  #  cmd: python -m src.transformer_service.train_transformer
+  #  deps:
+  #    - data/processed/train.csv
+  #    - src/transformer_service/train_transformer.py
+  #  params:
+  #    - transformer_train
+  #  outs:
+  #    - models/transformer/config.json
+  #    - models/transformer/tokenizer.json
+  #    - models/transformer/tokenizer_config.json
+  #    - models/transformer/special_tokens_map.json
+  #  metrics:
+  #    - metrics/transformer_metrics.json
 
   #evaluate_models:
   #  cmd: python src/evaluate_models.py

@@ -7,3 +7,5 @@
     endpointurl = https://logusnvelfkpkktrdmrd.storage.supabase.co/storage/v1/s3
     access_key_id = 0f58a930353f9da7c730e5cbdcb9a5e1
     secret_access_key = f1950537cb88e871f06127365bc797349670e12f0ba3b7ee549d5743a580a6ce
+    region = us-east-1
+    ssl_verify = true

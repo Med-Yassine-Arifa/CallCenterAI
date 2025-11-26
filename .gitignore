@@ -1,6 +1,7 @@
 # Python
 models/
 load_model.py
+upload.py
 __pycache__/
 *.py[cod]
 *$py.class

@@ -1,0 +1,43 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'callcenter-mlops'
+    environment: 'development'
+
+# Scrape configurations
+scrape_configs:
+  # TF-IDF Service
+  - job_name: 'tfidf-service'
+    static_configs:
+      - targets: ['tfidf-service:8001']
+        labels:
+          service: 'tfidf'
+          model: 'tfidf-svm'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Transformer Service
+  - job_name: 'transformer-service'
+    static_configs:
+      - targets: ['transformer-service:8002']
+        labels:
+          service: 'transformer'
+          model: 'distilbert'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Agent Service
+  - job_name: 'agent-service'
+    static_configs:
+      - targets: ['agent-service:8003']
+        labels:
+          service: 'agent'
+          type: 'orchestrator'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
