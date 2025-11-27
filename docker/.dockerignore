@@ -8,11 +8,11 @@ venv/
 env/
 # Data
 data/raw/*.csv
-*.pkl
+
 *.joblib
 # MLflow
 upload.py
-models/
+
 mlruns/
 mlflow.db
 # Git

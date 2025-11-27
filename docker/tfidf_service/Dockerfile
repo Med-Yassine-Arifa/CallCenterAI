@@ -26,7 +26,7 @@ WORKDIR /build
 
 # Install Python dependencies
 COPY requirements.txt .
-RUN pip install --user --no-warn-script-location -r requirements.txt
+RUN pip install  --no-warn-script-location -r requirements.txt
 
 # -------------------------
 # Stage 2: Runtime
@@ -47,15 +47,15 @@ RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
 
 # Copy Python dependencies from builder
-COPY --from=builder --chown=appuser:appuser /root/.local /root/.local
+COPY --from=builder /usr/local /usr/local
 
 WORKDIR /app
 
 # Copy source code, models, and data
-COPY --chown=appuser:appuser src/tfidf_service ./src/tfidf_service
-COPY --chown=appuser:appuser models/tfidf_model.pkl ./models/
-COPY --chown=appuser:appuser models/tfidf_vectorizer.pkl ./models/
-COPY --chown=appuser:appuser data/processed/label_encoder.pkl ./data/processed/
+COPY  src/tfidf_service ./src/tfidf_service
+COPY  models/tfidf_model.pkl ./models/
+COPY  models/tfidf_vectorizer.pkl ./models/
+COPY  data/processed/label_encoder.pkl ./data/processed/
 
 USER appuser
 
