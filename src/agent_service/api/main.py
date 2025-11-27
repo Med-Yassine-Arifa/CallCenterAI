@@ -2,6 +2,7 @@
 API de l'Agent IA orchestrateur
 """
 import logging
+import os
 import time
 from contextlib import asynccontextmanager
 
@@ -20,6 +21,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# URLs des services (venant de docker-compose)
+TFIDF_BASE_URL = os.getenv("TFIDF_URL", "http://tfidf-service:8001")
+TRANSFORMER_BASE_URL = os.getenv("TRANSFORMER_URL", "http://transformer-service:8002")
+
 # Métriques
 REQUEST_COUNT = Counter(
     "agent_requests_total", "Total requêtes Agent", ["endpoint", "model_used", "status"]
@@ -33,15 +38,13 @@ PII_DETECTED_COUNT = Counter("agent_pii_detected_total", "PII détectées")
 
 # Instances globales
 pii_scrubber = PIIScrubber()
-model_router = ModelRouter()
-
+model_router = ModelRouter(TFIDF_BASE_URL, TRANSFORMER_BASE_URL)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🚀 Démarrage Agent IA...")
     yield
     logger.info("🛑 Arrêt Agent IA...")
-
 
 app = FastAPI(
     title="CallCenter AI Agent",
@@ -58,7 +61,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.get("/", tags=["Root"])
 async def root():
     return {
@@ -67,22 +69,20 @@ async def root():
         "capabilities": ["PII scrubbing", "Intelligent routing", "Multi-model support"],
     }
 
-
 @app.get("/health", response_model=HealthResponse, tags=["Health"])
 async def health_check():
     """Health check complet de l'agent et des services"""
-
     async with httpx.AsyncClient(timeout=5.0) as client:
         # Service TF-IDF
         try:
-            tfidf_health = await client.get("http://localhost:8001/health")
+            tfidf_health = await client.get(f"{TFIDF_BASE_URL}/health")
             tfidf_status = "healthy" if tfidf_health.status_code == 200 else "unhealthy"
         except Exception:
             tfidf_status = "unreachable"
 
         # Service Transformer
         try:
-            transformer_health = await client.get("http://localhost:8002/health")
+            transformer_health = await client.get(f"{TRANSFORMER_BASE_URL}/health")
             transformer_status = (
                 "healthy" if transformer_health.status_code == 200 else "unhealthy"
             )
@@ -102,7 +102,6 @@ async def health_check():
         tfidf_service_status=tfidf_status,
         transformer_service_status=transformer_status,
     )
-
 
 @app.post("/predict", response_model=AgentResponse, tags=["Prediction"])
 async def predict(request: AgentRequest):
@@ -175,11 +174,9 @@ async def predict(request: AgentRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
-
 @app.get("/metrics", tags=["Monitoring"])
 async def metrics():
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
 
 if __name__ == "__main__":
     import uvicorn

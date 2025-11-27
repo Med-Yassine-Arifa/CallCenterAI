@@ -19,8 +19,17 @@ WORKDIR /build
 
 COPY requirements.txt .
 
-# Install all requirements globally (NOT --user)
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install  --no-warn-script-location \
+    torch==2.9.0+cu128 \
+    torchvision==0.24.0+cu128 \
+    torchaudio==2.9.0+cu128 \
+    --extra-index-url https://download.pytorch.org/whl/cu128 \
+    --timeout 300
+
+
+RUN   pip install  --no-warn-script-location -r requirements.txt
+
+
 
 
 # =============================================================================
