@@ -38,21 +38,8 @@ services:
     environment:
       - SERVICE_NAME=tfidf-service
       - LOG_LEVEL=INFO
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
 
   # ---------------------------------------------------------------------------
   # Service Transformer
@@ -70,21 +57,8 @@ services:
       - SERVICE_NAME=transformer-service
       - LOG_LEVEL=INFO
       - TRANSFORMERS_CACHE=/app/.cache
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 2G
-        reservations:
-          cpus: '1.0'
-          memory: 1G
 
   # ---------------------------------------------------------------------------
   # Agent IA
@@ -93,6 +67,7 @@ services:
     build:
       context: .
       dockerfile: docker/agent_service/Dockerfile
+    image: callcenterai-agent-service
     container_name: agent-service
     ports:
       - "8003:8003"
@@ -100,26 +75,9 @@ services:
       - callcenter-network
     environment:
       - SERVICE_NAME=agent-service
-      - LOG_LEVEL=INFO
-      - TFIDF_URL=http://tfidf-service:8001
-      - TRANSFORMER_URL=http://transformer-service:8002
-    depends_on:
-      tfidf-service:
-        condition: service_healthy
-      transformer-service:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
+      - SERVICE_PORT=8003
+
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
 
   # ---------------------------------------------------------------------------
   # MLflow Server
@@ -140,11 +98,6 @@ services:
       --port 5000
       --backend-store-uri sqlite:///mlflow/mlflow.db
       --default-artifact-root /mlflow/artifacts"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
@@ -170,11 +123,7 @@ services:
       - tfidf-service
       - transformer-service
       - agent-service
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
@@ -197,9 +146,5 @@ services:
       - GF_SERVER_ROOT_URL=http://localhost:3000
     depends_on:
       - prometheus
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    
     restart: unless-stopped
