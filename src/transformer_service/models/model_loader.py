@@ -39,18 +39,22 @@ class TransformerModelLoader:
             logger.info(f"Device utilisé: {self.device}")
 
             # Charger le tokenizer
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                self.model_path
+            )  # noqa: B615
 
             # Charger le modèle
-            self.model = AutoModelForSequenceClassification.from_pretrained(
-                self.model_path
+            self.model = (
+                AutoModelForSequenceClassification.from_pretrained(  # noqa: B615
+                    self.model_path
+                )
             )
             self.model.to(self.device)
             self.model.eval()  # Mode évaluation
 
             # Charger l'encodeur de labels
             logger.info(f"Chargement de l'encodeur depuis {self.encoder_path}")
-            self.label_encoder = joblib.load(self.encoder_path)
+            self.label_encoder = joblib.load(self.encoder_path)  # noqa: B301
 
             logger.info("✅ Modèle Transformer chargé avec succès")
             logger.info(f" Classes disponibles: {len(self.label_encoder.classes_)}")

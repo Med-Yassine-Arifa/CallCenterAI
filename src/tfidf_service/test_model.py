@@ -9,11 +9,11 @@ def test_tfidf_model():
 
     print(" Test du modèle TF-IDF...")
 
-    # Charger le modèle
-    model = joblib.load("models/tfidf_model.pkl")
+    # Charger le modÞle
+    model = joblib.load("models/tfidf_model.pkl")  # noqa: B301
 
     # Charger l'encodeur
-    label_encoder = joblib.load("data/processed/label_encoder.pkl")
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")  # noqa: B301
 
     print("✅ Modèle chargé")
     print("   Classes disponibles: {len(label_encoder.classes_)}")

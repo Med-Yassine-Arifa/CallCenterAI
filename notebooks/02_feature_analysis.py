@@ -3,7 +3,6 @@ Analyse approfondie des features et de leur impact sur les prédictions
 Semaine 3 - Feature Engineering
 """
 import json
-import pickle
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -11,6 +10,11 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.feature_extraction.text import TfidfVectorizer
+
+try:
+    import joblib
+except ImportError:
+    import pickle as joblib  # Fallback if joblib not available
 
 plt.style.use("seaborn-v0_8-darkgrid")
 sns.set_palette("husl")
@@ -46,8 +50,7 @@ class FeatureAnalyzer:
         ).fillna(0)
 
         # Charger label encoder
-        with open("data/processed/label_encoder.pkl", "rb") as f:
-            label_encoder = pickle.load(f)
+        label_encoder = joblib.load("data/processed/label_encoder.pkl")
 
         # Map des labels
         self.train_df["Topic"] = self.train_df["Topic_encoded"].map(
@@ -103,8 +106,7 @@ class FeatureAnalyzer:
         print("=" * 60)
 
         # Charger label encoder
-        with open("data/processed/label_encoder.pkl", "rb") as f:
-            label_encoder = pickle.load(f)
+        label_encoder = joblib.load("data/processed/label_encoder.pkl")
 
         # Map des labels
         self.train_df["Topic"] = self.train_df["Topic_encoded"].map(

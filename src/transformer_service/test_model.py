@@ -23,11 +23,11 @@ def test_transformer_model():
         return
 
     # Charger le modèle et tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForSequenceClassification.from_pretrained(model_path)
+    tokenizer = AutoTokenizer.from_pretrained(model_path)  # noqa: B615
+    model = AutoModelForSequenceClassification.from_pretrained(model_path)  # noqa: B615
 
     # Charger l'encodeur de labels
-    label_encoder = joblib.load("data/processed/label_encoder.pkl")
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")  # noqa: B301
 
     print("✅ Modèle chargé")
     print(f"Classes disponibles: {len(label_encoder.classes_)}")

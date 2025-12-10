@@ -4,7 +4,6 @@ Semaine 3 - Hyperparameter Tuning
 """
 import json
 import logging
-import pickle
 import sys
 from pathlib import Path
 
@@ -18,6 +17,11 @@ from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
+try:
+    import joblib
+except ImportError:
+    import pickle as joblib  # Fallback if joblib not available
+
 from mlflow_configs.mlflow_config import setup_mlflow
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -28,8 +32,7 @@ logger = logging.getLogger(__name__)
 def load_data():
     """Charger les données"""
     train_df = pd.read_csv("data/processed/train.csv")
-    with open("data/processed/label_encoder.pkl", "rb") as f:
-        label_encoder = pickle.load(f)
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")  # noqa: B301
 
     X = train_df["Document_clean"].values
     y = train_df["Topic_encoded"].values

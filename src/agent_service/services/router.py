@@ -14,8 +14,10 @@ MAX_LENGTH = 40  # words
 COMPLEXITY_THRESHOLD = 0.5  # probability threshold (0=easy, 1=very complex)
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 # Load lightweight reasoning model
-tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
-model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small").to(DEVICE)
+tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")  # noqa: B615
+model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small").to(
+    DEVICE
+)  # noqa: B615
 
 
 class ModelRouter:

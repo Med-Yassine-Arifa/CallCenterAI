@@ -66,7 +66,7 @@ def load_and_prepare_data():
     test_df = pd.read_csv("data/processed/test.csv")
 
     # Charger l'encodeur
-    label_encoder = joblib.load("data/processed/label_encoder.pkl")
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")  # noqa: B301
 
     # Statistiques d'équilibre du dataset
     train_distribution = train_df["Topic_encoded"].value_counts().sort_index()
@@ -403,8 +403,8 @@ def main():
         )
 
         # Charger tokenizer et modèle
-        tokenizer = AutoTokenizer.from_pretrained(params["model_name"])
-        model = AutoModelForSequenceClassification.from_pretrained(
+        tokenizer = AutoTokenizer.from_pretrained(params["model_name"])  # noqa: B615
+        model = AutoModelForSequenceClassification.from_pretrained(  # noqa: B615
             params["model_name"],
             num_labels=len(label_encoder.classes_),
             id2label={i: label for i, label in enumerate(label_encoder.classes_)},

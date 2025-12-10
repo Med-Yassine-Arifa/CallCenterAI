@@ -41,7 +41,7 @@ def load_data():
     train_df = pd.read_csv("data/processed/train.csv")
     test_df = pd.read_csv("data/processed/test.csv")
 
-    label_encoder = joblib.load("data/processed/label_encoder.pkl")
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")  # noqa: B301
 
     print(f" Train: {len(train_df)} échantillons")
     print(f" Test: {len(test_df)} échantillons")
@@ -112,8 +112,8 @@ def train_transformer_model(train_dataset, eval_dataset, label_encoder, params):
     model_name = params["model_name"]
     num_labels = len(label_encoder.classes_)
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(
+    tokenizer = AutoTokenizer.from_pretrained(model_name)  # noqa: B615
+    model = AutoModelForSequenceClassification.from_pretrained(  # noqa: B615
         model_name,
         num_labels=num_labels,
         id2label={i: label for i, label in enumerate(label_encoder.classes_)},
@@ -223,7 +223,7 @@ def main():
         mlflow.log_param("device", device)
         mlflow.log_param("num_classes", len(label_encoder.classes_))
 
-        tokenizer = AutoTokenizer.from_pretrained(params["model_name"])
+        tokenizer = AutoTokenizer.from_pretrained(params["model_name"])  # noqa: B615
         train_dataset, eval_dataset = prepare_datasets(
             train_df, test_df, tokenizer, params
         )

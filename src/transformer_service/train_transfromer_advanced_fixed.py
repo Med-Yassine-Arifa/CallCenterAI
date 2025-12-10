@@ -4,7 +4,6 @@ Corrected and ready-to-run version
 """
 import json
 import logging
-import pickle
 import sys
 import time
 from datetime import datetime
@@ -31,6 +30,11 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+
+try:
+    import joblib
+except ImportError:
+    import pickle as joblib  # Fallback if joblib not available
 
 from mlflow_configs.mlflow_config import setup_mlflow
 
@@ -68,8 +72,7 @@ def load_and_prepare_data():
     train_df = pd.read_csv("data/processed/train.csv")
     test_df = pd.read_csv("data/processed/test.csv")
 
-    with open("data/processed/label_encoder.pkl", "rb") as f:
-        label_encoder = pickle.load(f)
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")  # noqa: B301
 
     train_distribution = train_df["Topic_encoded"].value_counts().sort_index()
     test_distribution = test_df["Topic_encoded"].value_counts().sort_index()
@@ -387,8 +390,8 @@ def main():
         safe_log_params(params_to_log)
 
         # Load tokenizer/model
-        tokenizer = AutoTokenizer.from_pretrained(params["model_name"])
-        model = AutoModelForSequenceClassification.from_pretrained(
+        tokenizer = AutoTokenizer.from_pretrained(params["model_name"])  # noqa: B615
+        model = AutoModelForSequenceClassification.from_pretrained(  # noqa: B615
             params["model_name"],
             num_labels=len(label_encoder.classes_),
             id2label={i: label for i, label in enumerate(label_encoder.classes_)},

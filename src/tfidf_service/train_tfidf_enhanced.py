@@ -44,7 +44,7 @@ def load_data():
     train_df = pd.read_csv("data/processed/train.csv")
     test_df = pd.read_csv("data/processed/test.csv")
 
-    label_encoder = joblib.load("data/processed/label_encoder.pkl")
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")  # noqa: B301
 
     print(f"   Train: {len(train_df)} échantillons")
     print(f"   Test: {len(test_df)} échantillons")

@@ -1,4 +1,3 @@
-import pickle
 import sys
 from pathlib import Path
 
@@ -6,6 +5,11 @@ import numpy as np
 import pandas as pd
 import pytest
 from sklearn.base import BaseEstimator
+
+try:
+    import joblib
+except ImportError:
+    import pickle as joblib  # Fallback if joblib not available
 
 sys.path.append("src")
 
@@ -35,8 +39,7 @@ class TestTFIDFModel:
 
     def test_model_loading(self):
         """Tester le chargement du modèle"""
-        with open("models/tfidf_model.pkl", "rb") as f:
-            model = pickle.load(f)
+        model = joblib.load("models/tfidf_model.pkl")
 
         assert model is not None
         assert isinstance(model, BaseEstimator)
@@ -48,8 +51,7 @@ class TestTFIDFModel:
         encoder_path = Path("data/processed/label_encoder.pkl")
         assert encoder_path.exists(), "Encodeur de labels manquant"
 
-        with open(encoder_path, "rb") as f:
-            encoder = pickle.load(f)
+        encoder = joblib.load(encoder_path)
 
         assert encoder is not None
         assert hasattr(encoder, "classes_")
@@ -58,8 +60,7 @@ class TestTFIDFModel:
     def test_model_prediction(self, sample_data):
         """Tester les prédictions du modèle"""
         # Charger le modèle
-        with open("models/tfidf_model.pkl", "rb") as f:
-            model = pickle.load(f)
+        model = joblib.load("models/tfidf_model.pkl")
 
         # Test de prédiction
         test_texts = sample_data["Document_clean"].tolist()
