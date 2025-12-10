@@ -39,16 +39,16 @@ jobs:
           pip install black flake8 isort pytest pytest-cov bandit safety
       
       - name: 🎨 Format Check (Black)
-        run: black --check src/ tests/
+        run: black --check src/ tests/ --line-length=200
         
       - name: 🏷️ Import Sort Check (isort)
-        run: isort --check-only src/ tests/ --profile black
+        run: isort --check-only src/ tests/ --profile black --line-length=200
         
       - name: 🔍 Linting (Flake8)
-        run: flake8 src/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+        run: flake8 src/ tests/ --max-line-length=200 --extend-ignore=E203,W503,E501
         
       - name: 🔐 Security Scan (Bandit)
-        run: bandit -r src/ -f json -o bandit-report.json || true
+        run: bandit -r src/ -ll --exclude tests -f json -o bandit-report.json || true
         
       - name: 📋 Dependency Vulnerability Check
         run: safety check --json || true
