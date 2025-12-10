@@ -1,0 +1,179 @@
+{
+  "model_type": "DistilBERT Multilingue - Fine-tuned V2",
+  "timestamp": "2025-12-04T17:35:06.064770",
+  "training_time_minutes": 43.253087810675304,
+  "parameters": {
+    "model_name": "distilbert-base-multilingual-cased",
+    "max_length": 128,
+    "batch_size": 16,
+    "learning_rate": "5e-5",
+    "num_epochs": 8
+  },
+  "performance": {
+    "best_metric": 0.880000680347506,
+    "best_model_checkpoint": "models/transformer_model_v2\\checkpoint-15312",
+    "eval_loss": 0.4236961007118225,
+    "eval_accuracy": 0.8562842957930494,
+    "eval_f1_weighted": 0.857119263726929,
+    "eval_f1_macro": 0.8540235952227423,
+    "eval_precision": 0.8625522087251131,
+    "eval_recall": 0.8562842957930494
+  },
+  "classification_report": {
+    "Access": {
+      "precision": 0.882,
+      "recall": 0.9284210526315789,
+      "f1-score": 0.9046153846153846,
+      "support": 1425.0
+    },
+    "Administrative rights": {
+      "precision": 0.8112094395280236,
+      "recall": 0.78125,
+      "f1-score": 0.7959479015918959,
+      "support": 352.0
+    },
+    "HR Support": {
+      "precision": 0.8863013698630137,
+      "recall": 0.8891433806688044,
+      "f1-score": 0.8877201006174251,
+      "support": 2183.0
+    },
+    "Hardware": {
+      "precision": 0.8733986435568952,
+      "recall": 0.8512669849430775,
+      "f1-score": 0.862190812720848,
+      "support": 2723.0
+    },
+    "Internal Project": {
+      "precision": 0.9,
+      "recall": 0.8702830188679245,
+      "f1-score": 0.8848920863309352,
+      "support": 424.0
+    },
+    "Miscellaneous": {
+      "precision": 0.842797783933518,
+      "recall": 0.8618980169971672,
+      "f1-score": 0.8522408963585435,
+      "support": 1412.0
+    },
+    "Purchase": {
+      "precision": 0.9431578947368421,
+      "recall": 0.9087221095334685,
+      "f1-score": 0.9256198347107437,
+      "support": 493.0
+    },
+    "Storage": {
+      "precision": 0.8864864864864865,
+      "recall": 0.8864864864864865,
+      "f1-score": 0.8864864864864865,
+      "support": 555.0
+    },
+    "accuracy": 0.8762412459496185,
+    "macro avg": {
+      "precision": 0.8781689522630973,
+      "recall": 0.8721838812660634,
+      "f1-score": 0.8749641879290327,
+      "support": 9567.0
+    },
+    "weighted avg": {
+      "precision": 0.8763524022734023,
+      "recall": 0.8762412459496185,
+      "f1-score": 0.8761135273229805,
+      "support": 9567.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      1323,
+      5,
+      24,
+      47,
+      3,
+      17,
+      1,
+      5
+    ],
+    [
+      7,
+      275,
+      9,
+      48,
+      1,
+      10,
+      1,
+      1
+    ],
+    [
+      37,
+      4,
+      1941,
+      106,
+      13,
+      67,
+      3,
+      12
+    ],
+    [
+      81,
+      38,
+      123,
+      2318,
+      16,
+      102,
+      18,
+      27
+    ],
+    [
+      8,
+      2,
+      17,
+      12,
+      369,
+      14,
+      1,
+      1
+    ],
+    [
+      39,
+      8,
+      50,
+      75,
+      5,
+      1217,
+      3,
+      15
+    ],
+    [
+      1,
+      4,
+      4,
+      25,
+      3,
+      6,
+      448,
+      2
+    ],
+    [
+      4,
+      3,
+      22,
+      23,
+      0,
+      11,
+      0,
+      492
+    ]
+  ],
+  "num_parameters": 135330824,
+  "num_classes": 8,
+  "classes": [
+    "Access",
+    "Administrative rights",
+    "HR Support",
+    "Hardware",
+    "Internal Project",
+    "Miscellaneous",
+    "Purchase",
+    "Storage"
+  ]
+}

@@ -9,9 +9,16 @@ tfidf_train:
   min_df: 2
   max_df: 0.8
 
+tfidf_train_optimized:
+  max_features: 6000
+  ngram_range: [1, 2]
+  min_df: 1
+  max_df: 0.65
+  C: 0.4806626099110048
+
 transformer_train:
   model_name: "distilbert-base-multilingual-cased"
-  max_length: 512
+  max_length: 128
   batch_size: 16
-  learning_rate: 2e-5
-  num_epochs: 3
+  learning_rate: 5e-5
+  num_epochs: 8

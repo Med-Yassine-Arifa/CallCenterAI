@@ -1,0 +1,14 @@
+{
+  "best_trial": 0,
+  "best_f1_score": 0.8521410457519799,
+  "best_params": {
+    "max_features": 6500,
+    "ngram_1": 1,
+    "ngram_2": 3,
+    "min_df": 2,
+    "max_df": 0.7,
+    "C": 0.20462656141517938
+  },
+  "num_trials": 20,
+  "timestamp": "2025-12-10 20:28:59.343561"
+}

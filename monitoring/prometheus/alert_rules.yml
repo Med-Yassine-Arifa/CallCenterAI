@@ -1,0 +1,98 @@
+groups:
+  - name: callcenter_alerts
+    interval: 10s
+    rules:
+      # =====================================================================
+      # Alertes sur la Performance
+      # =====================================================================
+      - alert: HighLatencyP95
+        expr: p95_latency_seconds > 0.5
+        for: 2m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "High P95 latency detected"
+          description: "P95 latency for {{ $labels.service }} is {{ $value }}s"
+
+      - alert: HighLatencyP99
+        expr: p99_latency_seconds > 1.0
+        for: 2m
+        labels:
+          severity: critical
+          component: performance
+        annotations:
+          summary: "Critical P99 latency detected"
+          description: "P99 latency for {{ $labels.service }} is {{ $value }}s"
+
+      # =====================================================================
+      # Alertes sur les Erreurs
+      # =====================================================================
+      - alert: HighErrorRate
+        expr: error_rate_percent > 5
+        for: 2m
+        labels:
+          severity: warning
+          component: errors
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate for {{ $labels.service }} is {{ $value }}%"
+
+      - alert: CriticalErrorRate
+        expr: error_rate_percent > 20
+        for: 1m
+        labels:
+          severity: critical
+          component: errors
+        annotations:
+          summary: "Critical error rate detected"
+          description: "Error rate for {{ $labels.service }} is {{ $value }}%"
+
+      # =====================================================================
+      # Alertes sur la Prédiction
+      # =====================================================================
+      - alert: LowConfidencePredictions
+        expr: quantile(0.25, prediction_confidence) < 0.6
+        for: 5m
+        labels:
+          severity: warning
+          component: prediction
+        annotations:
+          summary: "Low confidence predictions detected"
+          description: "25th percentile confidence is {{ $value }}"
+
+      - alert: ClassImbalance
+        expr: count(predictions_by_class_total) < 5
+        for: 10m
+        labels:
+          severity: info
+          component: prediction
+        annotations:
+          summary: "Possible class imbalance"
+          description: "Only {{ $value }} classes being predicted"
+
+      # =====================================================================
+      # Alertes sur la Sécurité
+      # =====================================================================
+      - alert: HighPIIDetected
+        expr: rate(pii_detected_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High rate of PII detection"
+          description: "{{ $value }} PII detections per second"
+
+      # =====================================================================
+      # Alertes sur la Disponibilité
+      # =====================================================================
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: availability
+        annotations:
+          summary: "Service is down"
+          description: "{{ $labels.instance }} is down"

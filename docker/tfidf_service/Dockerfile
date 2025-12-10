@@ -20,6 +20,7 @@ ENV PYTHONUNBUFFERED=1 \
 RUN apt-get update && apt-get install -y \
         gcc \
         g++ \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
@@ -53,8 +54,9 @@ WORKDIR /app
 
 # Copy source code, models, and data
 COPY  src/tfidf_service ./src/tfidf_service
-COPY  models/tfidf_model.pkl ./models/
-COPY  models/tfidf_vectorizer.pkl ./models/
+COPY  src/monitoring ./src/monitoring
+COPY  models/tfidf_model_optimized.pkl ./models/
+COPY  models/tfidf_vectorizer_optimized.pkl ./models/
 COPY  data/processed/label_encoder.pkl ./data/processed/
 
 USER appuser
@@ -64,4 +66,5 @@ EXPOSE ${SERVICE_PORT}
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8001/health')" || exit
 
-CMD ["uvicorn", "src.tfidf_service.api.main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uvicorn", "src.tfidf_service.api.main_enhanced:app", "--host", "0.0.0.0", "--port", "8001"]
+

@@ -15,7 +15,7 @@ class TFIDFModelLoader:
 
     def __init__(
         self,
-        model_path: str = "models/tfidf_model.pkl",
+        model_path: str = "models/tfidf_model_optimized.pkl",
         encoder_path: str = "data/processed/label_encoder.pkl",
     ):
         self.model_path = Path(model_path)

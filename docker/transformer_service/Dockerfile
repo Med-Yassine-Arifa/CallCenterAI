@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
         gcc \
         g++ \
         git \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
@@ -60,7 +61,8 @@ WORKDIR /app
 
 # Copy source code, models, and data
 COPY  src/transformer_service ./src/transformer_service
-COPY  models/transformer ./models/transformer
+COPY  src/monitoring ./src/monitoring
+COPY  models/transformer_model_v2 ./models/transformer
 COPY  data/processed/label_encoder.pkl ./data/processed/
 
 USER appuser
@@ -71,3 +73,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8002/health')" || exit
 
 CMD ["uvicorn", "src.transformer_service.api.main:app", "--host", "0.0.0.0", "--port", "8002"]
+

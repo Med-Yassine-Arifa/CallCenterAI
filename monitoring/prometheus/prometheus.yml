@@ -5,6 +5,19 @@ global:
     cluster: 'callcenter-mlops'
     environment: 'development'
 
+# Configuration de l'alerting
+alerting:
+  alertmanagers:
+    - static_configs:
+      - targets: []
+
+
+# Fichiers de règles d'alerting
+rule_files:
+  - 'alert_rules.yml'
+  - '/etc/prometheus/alert_rules.yml'
+
+
 # Scrape configurations
 scrape_configs:
   # TF-IDF Service

@@ -3,6 +3,7 @@ API FastAPI pour le service de classification TF-IDF
 """
 
 import logging
+import sys
 import time
 from contextlib import asynccontextmanager
 
@@ -11,8 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from starlette.responses import Response
 
+from ...monitoring import metrics_collector
 from ..models.model_loader import TFIDFModelLoader
 from ..schemas.prediction import HealthResponse, PredictionRequest, PredictionResponse
+
+sys.path.insert(0, str(__file__).replace("src/tfidf_service/api/main_enhanced.py", ""))
 
 # Configuration du logging
 logging.basicConfig(
@@ -139,6 +143,8 @@ async def predict(request: PredictionRequest):
         # Métriques
         REQUEST_COUNT.labels(endpoint="/predict", method="POST", status="200").inc()
         PREDICTION_COUNT.labels(predicted_class=category).inc()
+
+        metrics_collector.update_statistics("tfidf")
 
         # Réponse
         return PredictionResponse(

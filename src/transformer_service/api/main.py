@@ -1,8 +1,8 @@
 """
 API FastAPI pour le service Transformer
 """
-
 import logging
+import sys
 import time
 from contextlib import asynccontextmanager
 
@@ -11,17 +11,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
+from ...monitoring import metrics_collector
 from ..models.model_loader import TransformerModelLoader
 from ..schemas.prediction import HealthResponse, PredictionRequest, PredictionResponse
 
-# Configuration logging
+sys.path.insert(0, str(__file__).replace("src/transformer_service/api/main.py", ""))
+
+# Logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
-# Métriques Prometheus
+# Prometheus metrics
 REQUEST_COUNT = Counter(
     "transformer_requests_total",
     "Total requêtes Transformer",
@@ -40,13 +43,12 @@ PREDICTION_COUNT = Counter(
     ["predicted_class"],
 )
 
-# Modèle global
+# Global model
 model_loader = TransformerModelLoader()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Gestion cycle de vie"""
     logger.info("🚀 Démarrage service Transformer...")
     try:
         model_loader.load_model()
@@ -105,20 +107,32 @@ async def predict(request: PredictionRequest):
     try:
         if not model_loader.is_loaded():
             REQUEST_COUNT.labels(endpoint="/predict", method="POST", status="503").inc()
+            metrics_collector.metrics_collector.record_error(
+                "transformer", "service_unavailable"
+            )
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Modèle non chargé",
             )
 
-        # Prédiction
+        # Mesure de la latence
         with REQUEST_DURATION.labels(endpoint="/predict").time():
             category, confidence, all_scores = model_loader.predict(request.text)
 
         processing_time_ms = (time.time() - start_time) * 1000
 
-        # Métriques
+        # Prometheus metrics
         REQUEST_COUNT.labels(endpoint="/predict", method="POST", status="200").inc()
         PREDICTION_COUNT.labels(predicted_class=category).inc()
+
+        # Monitoring custom
+        metrics_collector.metrics_collector.record_prediction(
+            service="transformer",
+            class_name=category,
+            confidence=confidence,
+            processing_time=processing_time_ms / 1000,
+        )
+        metrics_collector.metrics_collector.update_statistics("transformer")
 
         return PredictionResponse(
             predicted_class=category,
@@ -130,9 +144,13 @@ async def predict(request: PredictionRequest):
 
     except HTTPException:
         raise
+
     except Exception as e:
         logger.error(f"Erreur prédiction: {e}")
         REQUEST_COUNT.labels(endpoint="/predict", method="POST", status="500").inc()
+        metrics_collector.metrics_collector.record_error(
+            "transformer", "prediction_error"
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e),

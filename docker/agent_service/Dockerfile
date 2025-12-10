@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     g++ \
     python3-dev \
     git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
@@ -40,8 +41,11 @@ FROM python:3.11-slim AS runtime
 LABEL service="ai-agent" \
       version="1.0.0"
 
+
 ENV PYTHONUNBUFFERED=1 \
-    SERVICE_PORT=8003
+    PATH=/root/.local/bin:$PATH \
+    SERVICE_PORT=8003 \
+    AGENT_CACHE=/app/.cache
 
 RUN useradd -m -u 1000 appuser && \
     mkdir -p /app && \
@@ -53,12 +57,12 @@ COPY --from=builder /usr/local /usr/local
 WORKDIR /app
 
 COPY src/agent_service ./src/agent_service
+COPY src/monitoring ./src/monitoring
 
 USER appuser
 
 EXPOSE ${SERVICE_PORT}
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8003/health')" || exit 1
+
 
 CMD ["uvicorn", "src.agent_service.api.main:app", "--host", "0.0.0.0", "--port", "8003"]

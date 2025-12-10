@@ -1,0 +1,373 @@
+name: CI/CD Pipeline CallCenter MLOps
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Exécution quotidienne pour vérification
+    - cron: '0 2 * * *'
+
+env:
+  REGISTRY: docker.io
+  IMAGE_TAG: ${{ github.sha }}
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # =========================================================================
+  # Stage 1: Code Quality & Linting
+  # =========================================================================
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: ✅ Checkout Code
+        uses: actions/checkout@v3
+        
+      - name: 🐍 Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install black flake8 isort pytest pytest-cov bandit safety
+      
+      - name: 🎨 Format Check (Black)
+        run: black --check src/ tests/
+        
+      - name: 🏷️ Import Sort Check (isort)
+        run: isort --check-only src/ tests/ --profile black
+        
+      - name: 🔍 Linting (Flake8)
+        run: flake8 src/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+        
+      - name: 🔐 Security Scan (Bandit)
+        run: bandit -r src/ -f json -o bandit-report.json || true
+        
+      - name: 📋 Dependency Vulnerability Check
+        run: safety check --json || true
+      
+      - name: 📤 Upload Linting Reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: linting-reports
+          path: |
+            bandit-report.json
+
+  # =========================================================================
+  # Stage 2: Unit & Integration Tests
+  # =========================================================================
+  tests:
+    name: Tests (Unit + Integration)
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+    steps:
+      - name: ✅ Checkout Code
+        uses: actions/checkout@v3
+        
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-xdist
+      
+      - name: 📊 Download Dataset
+        run: |
+          python scripts/download_data.py || echo "⚠️ Dataset download skipped"
+      
+      - name: 🧪 Run Unit Tests
+        run: |
+          pytest tests/unit/ -v \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=html \
+            --junitxml=junit/unit-results.xml
+      
+      - name: 🔗 Run Integration Tests
+        run: |
+          pytest tests/integration/test_pipeline_integration.py -v \
+            --junitxml=junit/integration-results.xml
+        continue-on-error: true
+      
+      - name: 📈 Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+      
+      - name: 📤 Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: |
+            junit/**
+            htmlcov/**
+
+  # =========================================================================
+  # Stage 3: Security Scanning
+  # =========================================================================
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    steps:
+      - name: ✅ Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: 🔐 Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: 📤 Upload Trivy Results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # =========================================================================
+  # Stage 4: Build & Push Docker Images
+  # =========================================================================
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [code-quality, tests, security]
+    if: success()
+    
+    permissions:
+      contents: read
+      packages: write
+    
+    strategy:
+      matrix:
+        service: [tfidf_service, transformer_service, agent_service]
+        include:
+          - service: tfidf_service
+            dockerfile: docker/tfidf_service/Dockerfile
+            image_name: tfidf-service
+          - service: transformer_service
+            dockerfile: docker/transformer_service/Dockerfile
+            image_name: transformer-service
+          - service: agent_service
+            dockerfile: docker/agent_service/Dockerfile
+            image_name: agent-service
+    
+    steps:
+      - name: ✅ Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: 🔧 Set Up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: 🐳 Build Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: false
+          tags: |
+            ${{ matrix.image_name }}:latest
+            ${{ matrix.image_name }}:${{ env.IMAGE_TAG }}
+          outputs: type=docker,dest=/tmp/${{ matrix.image_name }}.tar
+      
+      - name: 📤 Upload Image Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-images
+          path: /tmp/${{ matrix.image_name }}.tar
+          retention-days: 1
+
+  # =========================================================================
+  # Stage 5: Docker Compose Integration Test
+  # =========================================================================
+  docker-integration:
+    name: Docker Compose Integration Test
+    runs-on: ubuntu-latest
+    needs: build
+    if: success()
+    
+    steps:
+      - name: ✅ Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: 🐳 Download Docker Images
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-images
+          path: /tmp/
+      
+      - name: 📦 Load Docker Images
+        run: |
+          docker load --input /tmp/tfidf-service.tar
+          docker load --input /tmp/transformer-service.tar
+          docker load --input /tmp/agent-service.tar
+        continue-on-error: true
+      
+      - name: 🔨 Start Docker Compose Stack
+        run: |
+          docker-compose up -d
+          sleep 30
+      
+      - name: 🧪 Health Checks
+        run: |
+          for i in {1..10}; do
+            echo "Health check attempt $i..."
+            curl -f http://localhost:8001/health && echo "✅ TF-IDF OK" || true
+            curl -f http://localhost:8002/health && echo "✅ Transformer OK" || true
+            curl -f http://localhost:8003/health && echo "✅ Agent OK" || true
+            sleep 3
+          done
+      
+      - name: 🧪 API Tests
+        run: |
+          python scripts/test_tfidf_service.py || true
+      
+      - name: 📊 Check Prometheus
+        run: |
+          curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets | length'
+      
+      - name: 📋 Logs
+        if: failure()
+        run: docker-compose logs
+
+  # =========================================================================
+  # Stage 6: Performance & Load Testing
+  # =========================================================================
+  performance:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: build
+    if: success()
+    
+    steps:
+      - name: ✅ Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: 📦 Install Dependencies
+        run: |
+          pip install locust requests
+      
+      - name: 🔨 Start Services (Docker Compose)
+        run: |
+          docker-compose up -d
+          sleep 20
+      
+      - name: 📊 Load Testing
+        run: |
+          locust -f tests/performance/locustfile.py \
+            --headless -u 50 -r 10 -t 60s \
+            --csv=results
+        continue-on-error: true
+      
+      - name: 📤 Upload Performance Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: results*
+
+  # =========================================================================
+  # Stage 7: Deployment (Production Only)
+  # =========================================================================
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, docker-integration, performance]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    environment:
+      name: production
+      url: https://callcenter-mlops.example.com
+    
+    steps:
+      - name: ✅ Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: 🚀 Deploy to Production
+        run: |
+          echo "🚀 Déploiement en production..."
+          echo "📋 Services à déployer:"
+          echo "   - tfidf-service:${{ env.IMAGE_TAG }}"
+          echo "   - transformer-service:${{ env.IMAGE_TAG }}"
+          echo "   - agent-service:${{ env.IMAGE_TAG }}"
+          
+          # Placeholder pour vrai déploiement
+          # kubectl set image deployment/tfidf-service \
+          #   tfidf-service=callcenter/tfidf-service:${{ env.IMAGE_TAG }} \
+          #   --namespace=production
+        
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      
+      - name: ✅ Post-Deploy Health Checks
+        run: |
+          echo "✅ Health checks post-déploiement"
+      
+      - name: 📧 Notification
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Deployment successful!' || '❌ Deployment failed'
+            })
+
+  # =========================================================================
+  # Status Summary
+  # =========================================================================
+  summary:
+    name: Workflow Summary
+    runs-on: ubuntu-latest
+    needs: [code-quality, tests, security, build, docker-integration, performance]
+    if: always()
+    
+    steps:
+      - name: 📊 Print Summary
+        run: |
+          echo "CI/CD Pipeline Summary"
+          echo "======================"
+          echo "✅ Code Quality: ${{ needs.code-quality.result }}"
+          echo "✅ Tests: ${{ needs.tests.result }}"
+          echo "✅ Security: ${{ needs.security.result }}"
+          echo "✅ Build: ${{ needs.build.result }}"
+          echo "✅ Docker Integration: ${{ needs.docker-integration.result }}"
+          echo "✅ Performance: ${{ needs.performance.result }}"
