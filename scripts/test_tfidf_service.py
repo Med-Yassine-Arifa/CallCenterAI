@@ -16,7 +16,7 @@ def test_root():
     print("TEST: Endpoint racine")
     print("=" * 60)
 
-    response = requests.get(f"{BASE_URL}/")
+    response = requests.get(f"{BASE_URL}/", timeout=10)
     print(f"Status: {response.status_code}")
     pprint(response.json())
 
@@ -27,7 +27,7 @@ def test_health():
     print("TEST: Health Check")
     print("=" * 60)
 
-    response = requests.get(f"{BASE_URL}/health")
+    response = requests.get(f"{BASE_URL}/health", timeout=10)
     print(f"Status: {response.status_code}")
     pprint(response.json())
 
@@ -50,7 +50,7 @@ def test_prediction():
         print(f"\n--- Test Case {i} ---")
         print(f"Text: {text}")
 
-        response = requests.post(f"{BASE_URL}/predict", json={"text": text})
+        response = requests.post(f"{BASE_URL}/predict", json={"text": text}, timeout=10)
 
         if response.status_code == 200:
             result = response.json()
@@ -72,7 +72,7 @@ def test_model_info():
     print("TEST: Informations Modèle")
     print("=" * 60)
 
-    response = requests.get(f"{BASE_URL}/model/info")
+    response = requests.get(f"{BASE_URL}/model/info", timeout=10)
     print(f"Status: {response.status_code}")
     pprint(response.json())
 
@@ -83,7 +83,7 @@ def test_metrics():
     print("TEST: Métriques Prometheus")
     print("=" * 60)
 
-    response = requests.get(f"{BASE_URL}/metrics")
+    response = requests.get(f"{BASE_URL}/metrics", timeout=10)
     print(f"Status: {response.status_code}")
     print("Échantillon des métriques:")
     print(response.text[:500] + "...")

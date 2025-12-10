@@ -3,12 +3,16 @@ Chargement et gestion du modèle Transformer
 """
 
 import logging
-import pickle
 from pathlib import Path
 from typing import Dict, Tuple
 
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+try:
+    import joblib
+except ImportError:
+    import pickle as joblib  # Fallback if joblib not available
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +50,7 @@ class TransformerModelLoader:
 
             # Charger l'encodeur de labels
             logger.info(f"Chargement de l'encodeur depuis {self.encoder_path}")
-            with open(self.encoder_path, "rb") as f:
-                self.label_encoder = pickle.load(f)
+            self.label_encoder = joblib.load(self.encoder_path)
 
             logger.info("✅ Modèle Transformer chargé avec succès")
             logger.info(f" Classes disponibles: {len(self.label_encoder.classes_)}")

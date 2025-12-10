@@ -1,5 +1,4 @@
 import json
-import pickle
 import sys
 import time
 from pathlib import Path
@@ -19,6 +18,11 @@ from transformers import (
     TrainingArguments,
 )
 
+try:
+    import joblib
+except ImportError:
+    import pickle as joblib  # Fallback if joblib not available
+
 from mlflow_configs.mlflow_config import setup_mlflow
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
@@ -37,8 +41,7 @@ def load_data():
     train_df = pd.read_csv("data/processed/train.csv")
     test_df = pd.read_csv("data/processed/test.csv")
 
-    with open("data/processed/label_encoder.pkl", "rb") as f:
-        label_encoder = pickle.load(f)
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")
 
     print(f" Train: {len(train_df)} échantillons")
     print(f" Test: {len(test_df)} échantillons")

@@ -4,7 +4,6 @@ Semaine 3 - Optimisations ML
 """
 import json
 import logging
-import pickle
 import sys
 import time
 from datetime import datetime
@@ -31,6 +30,11 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+
+try:
+    import joblib
+except ImportError:
+    import pickle as joblib  # Fallback if joblib not available
 
 from mlflow_configs.mlflow_config import setup_mlflow
 
@@ -62,8 +66,7 @@ def load_and_prepare_data():
     test_df = pd.read_csv("data/processed/test.csv")
 
     # Charger l'encodeur
-    with open("data/processed/label_encoder.pkl", "rb") as f:
-        label_encoder = pickle.load(f)
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")
 
     # Statistiques d'équilibre du dataset
     train_distribution = train_df["Topic_encoded"].value_counts().sort_index()

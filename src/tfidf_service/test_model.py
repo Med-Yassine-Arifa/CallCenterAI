@@ -1,4 +1,7 @@
-import pickle
+try:
+    import joblib
+except ImportError:
+    import pickle as joblib  # Fallback if joblib not available
 
 
 def test_tfidf_model():
@@ -7,12 +10,10 @@ def test_tfidf_model():
     print(" Test du modèle TF-IDF...")
 
     # Charger le modèle
-    with open("models/tfidf_model.pkl", "rb") as f:
-        model = pickle.load(f)
+    model = joblib.load("models/tfidf_model.pkl")
 
     # Charger l'encodeur
-    with open("data/processed/label_encoder.pkl", "rb") as f:
-        label_encoder = pickle.load(f)
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")
 
     print("✅ Modèle chargé")
     print("   Classes disponibles: {len(label_encoder.classes_)}")

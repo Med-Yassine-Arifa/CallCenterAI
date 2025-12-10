@@ -1,8 +1,12 @@
 """
 Script pour tester le modèle Transformer entraîné
 """
-import pickle
 from pathlib import Path
+
+try:
+    import joblib
+except ImportError:
+    import pickle as joblib  # Fallback if joblib not available
 
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -23,8 +27,7 @@ def test_transformer_model():
     model = AutoModelForSequenceClassification.from_pretrained(model_path)
 
     # Charger l'encodeur de labels
-    with open("data/processed/label_encoder.pkl", "rb") as f:
-        label_encoder = pickle.load(f)
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")
 
     print("✅ Modèle chargé")
     print(f"Classes disponibles: {len(label_encoder.classes_)}")

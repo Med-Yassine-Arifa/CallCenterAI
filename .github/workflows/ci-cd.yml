@@ -55,7 +55,7 @@ jobs:
       
       - name: 📤 Upload Linting Reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linting-reports
           path: |
@@ -124,7 +124,7 @@ jobs:
       
       - name: 📤 Upload Test Reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-reports
           path: |
@@ -202,7 +202,7 @@ jobs:
           outputs: type=docker,dest=/tmp/${{ matrix.image_name }}.tar
       
       - name: 📤 Upload Image Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docker-images
           path: /tmp/${{ matrix.image_name }}.tar
@@ -297,7 +297,7 @@ jobs:
       
       - name: 📤 Upload Performance Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-results
           path: results*

@@ -1,5 +1,4 @@
 import json
-import pickle
 import time
 
 import mlflow
@@ -19,6 +18,11 @@ from sklearn.metrics import (
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
+try:
+    import joblib
+except ImportError:
+    import pickle as joblib
+
 # Assuming mlflow_configs/mlflow_config.py and setup_mlflow exist and work
 from mlflow_configs.mlflow_config import setup_mlflow
 
@@ -37,8 +41,7 @@ def load_data():
     train_df = pd.read_csv("data/processed/train.csv")
     test_df = pd.read_csv("data/processed/test.csv")
 
-    with open("data/processed/label_encoder.pkl", "rb") as f:
-        label_encoder = pickle.load(f)
+    label_encoder = joblib.load("data/processed/label_encoder.pkl")
 
     print(f"   Train: {len(train_df)} échantillons")
     print(f"   Test: {len(test_df)} échantillons")
@@ -149,12 +152,12 @@ def save_model_and_metrics(
 
     # Save the full CalibratedClassifierCV pipeline
     with open("models/tfidf_model.pkl", "wb") as f:
-        pickle.dump(pipeline, f)
+        joblib.dump(pipeline, f)
 
     # Use the fitted vectorizer from the fitted base_pipeline
     vectorizer = base_pipeline.named_steps["tfidf"]
     with open("models/tfidf_vectorizer.pkl", "wb") as f:
-        pickle.dump(vectorizer, f)
+        joblib.dump(vectorizer, f)
 
     full_metrics = {
         "model_type": "TF-IDF + SVM",

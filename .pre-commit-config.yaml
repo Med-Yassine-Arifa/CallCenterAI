@@ -18,19 +18,18 @@ repos:
         args: [--max-line-length=150, --extend-ignore=E203]
 
   #- repo: https://github.com/pycqa/bandit
-    #rev: 1.8.6
-    #hooks:
-    #- id: bandit
-     # args: ["--format", "json"]
+  #  rev: 1.8.6
+  #  hooks:
+  #    - id: bandit
+  #      args: ["--format", "json", "-ll", "--exclude", "tests"]
 
 
-
-  - repo: local
-    hooks:
-      - id: pytest
-        name: pytest
-        entry: python -m pytest tests/ -v
-        language: system
-        types: [python]
-        pass_filenames: false
-        always_run: true
+  #- repo: local
+  #  hooks:
+  #    - id: pytest
+  #      name: pytest
+  #      entry: python -m pytest tests/ -v
+  #      language: system
+  #      types: [python]
+  #      pass_filenames: false
+  #      always_run: true

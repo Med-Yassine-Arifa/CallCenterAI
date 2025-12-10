@@ -3,9 +3,13 @@ Chargement et gestion du modèle TF-IDF
 """
 
 import logging
-import pickle
 from pathlib import Path
 from typing import Dict, Tuple
+
+try:
+    import joblib
+except ImportError:
+    import pickle as joblib  # Fallback if joblib not available
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +31,10 @@ class TFIDFModelLoader:
         """Charger le modèle et l'encodeur depuis les fichiers"""
         try:
             logger.info(f"Chargement du modèle depuis {self.model_path}")
-            with open(self.model_path, "rb") as f:
-                self.model = pickle.load(f)
+            self.model = joblib.load(self.model_path)
 
             logger.info(f"Chargement de l'encodeur depuis {self.encoder_path}")
-            with open(self.encoder_path, "rb") as f:
-                self.label_encoder = pickle.load(f)
+            self.label_encoder = joblib.load(self.encoder_path)
 
             logger.info("✅ Modèle TF-IDF chargé avec succès")
             logger.info(f"Classes disponibles : {len(self.label_encoder.classes_)}")

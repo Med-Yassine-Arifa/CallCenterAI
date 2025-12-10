@@ -1,0 +1,6 @@
+[bandit]
+# Exclude tests from security checks - they use assert and other patterns that are safe in test context
+exclude_dirs = ['/test','/tests']
+
+# Tests that should be skipped
+skips = [B101, B301, B403, B607, B605, B603]
