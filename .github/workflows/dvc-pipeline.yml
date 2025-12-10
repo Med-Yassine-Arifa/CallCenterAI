@@ -1,0 +1,63 @@
+name: DVC Pipeline Reproduction
+
+on:
+  push:
+    paths:
+      - 'data/**'
+      - 'params.yaml'
+      - 'dvc.yaml'
+      - 'src/data_preparation/**'
+      - 'src/tfidf_service/train_tfidf.py'
+  workflow_dispatch:
+
+jobs:
+  dvc-repro:
+    name: DVC Pipeline Reproduction
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install dvc dvc[s3]
+      
+      - name: Pull data from DVC remote
+        run: |
+          dvc pull -r myremote
+        continue-on-error: true
+      
+      - name: Run DVC Pipeline
+        run: |
+          dvc repro --force-downstream
+      
+      - name: Check metrics
+        run: |
+          dvc metrics show
+      
+      - name: Push updated data back
+        if: github.ref == 'refs/heads/main'
+        run: |
+          dvc push -r myremote
+        env:
+          DVC_REMOTE_URL: ${{ secrets.DVC_REMOTE_URL }}
+      
+      - name: Commit changes
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add dvc.lock metrics/
+          git commit -m "Update DVC pipeline results" || echo "No changes"
+      
+      - name: Push commit
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git push origin main

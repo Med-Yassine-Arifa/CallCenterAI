@@ -1,0 +1,79 @@
+name: Matrix Tests - Parallel Execution
+
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'requirements.txt'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+
+jobs:
+  test-matrix:
+    name: Test ${{ matrix.test-suite }} on ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11']
+        test-suite:
+          - 'unit-data'
+          - 'unit-tfidf'
+          - 'unit-transformer'
+          - 'unit-agent'
+          - 'integration-apis'
+          - 'integration-pipeline'
+        include:
+          - test-suite: 'unit-data'
+            test-path: 'tests/unit/test_data_preparation.py'
+          - test-suite: 'unit-tfidf'
+            test-path: 'tests/unit/test_tfidf_model.py'
+          - test-suite: 'unit-transformer'
+            test-path: 'tests/unit/test_transformer_model.py'
+          - test-suite: 'unit-agent'
+            test-path: 'tests/unit/test_agent_service.py'
+          - test-suite: 'integration-apis'
+            test-path: 'tests/integration/test_docker_services.py'
+          - test-suite: 'integration-pipeline'
+            test-path: 'tests/integration/test_pipeline_integration.py'
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-xdist
+      
+      - name: Run ${{ matrix.test-suite }}
+        run: |
+          pytest ${{ matrix.test-path }} -v \
+            --cov=src \
+            --cov-report=term-missing \
+            -n auto
+        continue-on-error: true
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          flags: ${{ matrix.test-suite }}
+          fail_ci_if_error: false
