@@ -1,11 +1,13 @@
 import sys
+from pathlib import Path
 
 import numpy as np
 import pytest
 
-from src.data_preparation.prepare_data import clean_text
+from data_preparation.prepare_data import clean_text
 
-sys.path.append("src/data_preparation")
+# Add src to path for imports
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 
 class TestTextCleaning:
