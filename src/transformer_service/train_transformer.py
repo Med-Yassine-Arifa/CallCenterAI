@@ -11,12 +11,7 @@ import torch
 import yaml
 from datasets import Dataset
 from sklearn.metrics import accuracy_score, f1_score, precision_recall_fscore_support
-from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    Trainer,
-    TrainingArguments,
-)
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments
 
 try:
     import joblib
@@ -90,9 +85,7 @@ def compute_metrics(eval_pred):
     predictions, labels = eval_pred
     predictions = np.argmax(predictions, axis=1)
 
-    precision, recall, f1, _ = precision_recall_fscore_support(
-        labels, predictions, average="weighted"
-    )
+    precision, recall, f1, _ = precision_recall_fscore_support(labels, predictions, average="weighted")
     accuracy = accuracy_score(labels, predictions)
     f1_macro = f1_score(labels, predictions, average="macro")
 
@@ -177,8 +170,7 @@ def evaluate_and_save(trainer, model, tokenizer, label_encoder, params):
         "final_f1_macro": eval_results["eval_f1_macro"],
         "final_precision": eval_results["eval_precision"],
         "final_recall": eval_results["eval_recall"],
-        "training_time_minutes": trainer.state.log_history[-1].get("train_runtime", 0)
-        / 60,
+        "training_time_minutes": trainer.state.log_history[-1].get("train_runtime", 0) / 60,
         "num_parameters": model.num_parameters(),
         "num_classes": len(label_encoder.classes_),
     }
@@ -224,13 +216,9 @@ def main():
         mlflow.log_param("num_classes", len(label_encoder.classes_))
 
         tokenizer = AutoTokenizer.from_pretrained(params["model_name"])  # noqa: B615
-        train_dataset, eval_dataset = prepare_datasets(
-            train_df, test_df, tokenizer, params
-        )
+        train_dataset, eval_dataset = prepare_datasets(train_df, test_df, tokenizer, params)
 
-        trainer, model, tokenizer = train_transformer_model(
-            train_dataset, eval_dataset, label_encoder, params
-        )
+        trainer, model, tokenizer = train_transformer_model(train_dataset, eval_dataset, label_encoder, params)
 
         metrics = evaluate_and_save(trainer, model, tokenizer, label_encoder, params)
         mlflow.log_metrics(metrics)

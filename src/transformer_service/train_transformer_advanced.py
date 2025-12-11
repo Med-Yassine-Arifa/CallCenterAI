@@ -16,20 +16,8 @@ import pandas as pd
 import torch
 import yaml
 from datasets import Dataset
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    confusion_matrix,
-    f1_score,
-    precision_recall_fscore_support,
-)
-from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    EarlyStoppingCallback,
-    Trainer,
-    TrainingArguments,
-)
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, precision_recall_fscore_support
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, EarlyStoppingCallback, Trainer, TrainingArguments
 
 try:
     import joblib
@@ -42,9 +30,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 torch.backends.cudnn.conv.fp32_precision = "tf32"
 torch.backends.cuda.matmul.fp32_precision = "tf32"
 # Configuration logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -77,10 +63,7 @@ def load_and_prepare_data():
     logger.info(f"   Test:  {dict(test_distribution)}")
 
     # Vérifier l'équilibre
-    class_weights = train_df["Topic_encoded"].value_counts().sum() / (
-        len(train_df["Topic_encoded"].unique())
-        * train_df["Topic_encoded"].value_counts()
-    )
+    class_weights = train_df["Topic_encoded"].value_counts().sum() / (len(train_df["Topic_encoded"].unique()) * train_df["Topic_encoded"].value_counts())
 
     logger.info("\n⚖️ Poids des classes (pour équilibrage):")
     for i, weight in class_weights.items():
@@ -121,13 +104,9 @@ def create_datasets(train_df, test_df, tokenizer, params):
     )
 
     # Tokenization
-    train_dataset = train_dataset.map(
-        tokenize_function, batched=True, remove_columns=["text"]
-    )
+    train_dataset = train_dataset.map(tokenize_function, batched=True, remove_columns=["text"])
 
-    eval_dataset = eval_dataset.map(
-        tokenize_function, batched=True, remove_columns=["text"]
-    )
+    eval_dataset = eval_dataset.map(tokenize_function, batched=True, remove_columns=["text"])
 
     # Split train en train/validation (80/20)
     train_val_split = train_dataset.train_test_split(test_size=0.2, seed=42)
@@ -147,9 +126,7 @@ def compute_metrics(eval_pred):
 
     # Métriques principales
     accuracy = accuracy_score(labels, predictions)
-    precision, recall, f1_weighted, _ = precision_recall_fscore_support(
-        labels, predictions, average="weighted"
-    )
+    precision, recall, f1_weighted, _ = precision_recall_fscore_support(labels, predictions, average="weighted")
     f1_macro = f1_score(labels, predictions, average="macro")
     f1_micro = f1_score(labels, predictions, average="micro")
 
@@ -163,9 +140,7 @@ def compute_metrics(eval_pred):
     }
 
 
-def train_with_class_weights(
-    model, train_dataset, eval_dataset, label_encoder, params, class_weights
-):
+def train_with_class_weights(model, train_dataset, eval_dataset, label_encoder, params, class_weights):
     """
     Entraîner le modèle avec pondération des classes pour gérer les déséquilibres
     """
@@ -214,9 +189,7 @@ def train_with_class_weights(
 
     # Créer un trainer personnalisé pour la pondération des classes
     class WeightedTrainer(Trainer):
-        def compute_loss(
-            self, model, inputs, return_outputs=False, num_items_in_batch=None
-        ):
+        def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
             outputs = model(**inputs)
             logits = outputs.logits
             labels = inputs.get("labels")
@@ -234,11 +207,7 @@ def train_with_class_weights(
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         compute_metrics=compute_metrics,
-        callbacks=[
-            EarlyStoppingCallback(
-                early_stopping_patience=5, early_stopping_threshold=0.0001
-            )
-        ],
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=5, early_stopping_threshold=0.0001)],
     )
 
     logger.info("🏋️ Démarrage de l'entraînement...")
@@ -263,9 +232,7 @@ def evaluate_model(trainer, eval_dataset, label_encoder):
     true_labels = eval_dataset["labels"]
 
     # Rapport de classification détaillé
-    class_report = classification_report(
-        true_labels, pred_labels, target_names=label_encoder.classes_, output_dict=True
-    )
+    class_report = classification_report(true_labels, pred_labels, target_names=label_encoder.classes_, output_dict=True)
 
     # Matrice de confusion
     conf_matrix = confusion_matrix(true_labels, pred_labels)
@@ -412,19 +379,13 @@ def main():
         )
 
         # Créer datasets
-        train_dataset, val_dataset, eval_dataset = create_datasets(
-            train_df, test_df, tokenizer, params
-        )
+        train_dataset, val_dataset, eval_dataset = create_datasets(train_df, test_df, tokenizer, params)
 
         # Entraîner
-        trainer, training_time = train_with_class_weights(
-            model, train_dataset, val_dataset, label_encoder, params, class_weights
-        )
+        trainer, training_time = train_with_class_weights(model, train_dataset, val_dataset, label_encoder, params, class_weights)
 
         # Évaluer
-        class_report, conf_matrix, per_class_metrics = evaluate_model(
-            trainer, eval_dataset, label_encoder
-        )
+        class_report, conf_matrix, per_class_metrics = evaluate_model(trainer, eval_dataset, label_encoder)
 
         # Sauvegarder
         save_results(

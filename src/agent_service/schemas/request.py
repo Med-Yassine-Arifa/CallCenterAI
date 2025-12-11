@@ -10,9 +10,7 @@ class AgentRequest(BaseModel):
     """Requête à l'agent"""
 
     text: str = Field(..., min_length=10, max_length=5000)
-    force_model: Optional[str] = Field(
-        None, description="Forcer un modèle (tfidf/transformer)"
-    )
+    force_model: Optional[str] = Field(None, description="Forcer un modèle (tfidf/transformer)")
 
 
 class AgentResponse(BaseModel):

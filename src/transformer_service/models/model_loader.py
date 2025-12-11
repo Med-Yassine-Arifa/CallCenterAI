@@ -39,16 +39,10 @@ class TransformerModelLoader:
             logger.info(f"Device utilisé: {self.device}")
 
             # Charger le tokenizer
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.model_path
-            )  # noqa: B615
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)  # noqa: B615
 
             # Charger le modèle
-            self.model = (
-                AutoModelForSequenceClassification.from_pretrained(  # noqa: B615
-                    self.model_path
-                )
-            )
+            self.model = AutoModelForSequenceClassification.from_pretrained(self.model_path)  # noqa: B615
             self.model.to(self.device)
             self.model.eval()  # Mode évaluation
 
@@ -102,10 +96,7 @@ class TransformerModelLoader:
         category = self.label_encoder.classes_[predicted_class_id]
 
         # Créer le dictionnaire de scores
-        all_scores = {
-            str(self.label_encoder.classes_[i]): float(probabilities[0][i].item())
-            for i in range(len(self.label_encoder.classes_))
-        }
+        all_scores = {str(self.label_encoder.classes_[i]): float(probabilities[0][i].item()) for i in range(len(self.label_encoder.classes_))}
 
         # Trier par score décroissant
         all_scores = dict(sorted(all_scores.items(), key=lambda x: x[1], reverse=True))
@@ -114,8 +105,4 @@ class TransformerModelLoader:
 
     def is_loaded(self) -> bool:
         """Vérifier si le modèle est chargé"""
-        return (
-            self.model is not None
-            and self.tokenizer is not None
-            and self.label_encoder is not None
-        )
+        return self.model is not None and self.tokenizer is not None and self.label_encoder is not None

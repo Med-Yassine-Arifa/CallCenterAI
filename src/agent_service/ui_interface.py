@@ -11,9 +11,7 @@ chat_history: List[Dict[str, str]] = []
 status_message = "🟢 Ready"
 
 
-def analyze_message(
-    message: str, history: List[Dict[str, str]]
-) -> tuple[List[Dict[str, str]], str, str]:
+def analyze_message(message: str, history: List[Dict[str, str]]) -> tuple[List[Dict[str, str]], str, str]:
     """Analyze message with enhanced UX feedback"""
     global status_message
 
@@ -29,9 +27,7 @@ def analyze_message(
         new_history.append({"role": "assistant", "content": "⏳ Processing..."})
 
         # Call the Agent API
-        response = requests.post(
-            f"{AGENT_API_URL}/predict", json={"text": message}, timeout=30
-        )
+        response = requests.post(f"{AGENT_API_URL}/predict", json={"text": message}, timeout=30)
 
         if response.status_code == 200:
             result = response.json()
@@ -51,9 +47,7 @@ def analyze_message(
             }
             emoji = emoji_map.get(predicted_class.lower(), "🤖")
 
-            final_response = (
-                f"{emoji} **{predicted_class.title()}** (Confidence: {confidence:.1%})"
-            )
+            final_response = f"{emoji} **{predicted_class.title()}** (Confidence: {confidence:.1%})"
 
             # Replace typing indicator
             new_history[-1] = {"role": "assistant", "content": final_response}
@@ -291,9 +285,7 @@ with gr.Blocks(css=css) as demo:
 
     status = gr.HTML(value=status_message, elem_classes=["status-bar"])
 
-    chatbot = gr.Chatbot(
-        label="💬 Conversation", height=380, show_label=False, elem_id="chatbot"
-    )
+    chatbot = gr.Chatbot(label="💬 Conversation", height=380, show_label=False, elem_id="chatbot")
 
     with gr.Row():
         msg = gr.Textbox(

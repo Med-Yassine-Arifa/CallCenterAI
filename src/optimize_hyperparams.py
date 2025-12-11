@@ -85,9 +85,7 @@ def objective_tfidf(trial: Trial):
 
     try:
         # Cross-validation avec F1-score
-        scores = cross_val_score(
-            calibrated, X, y, cv=5, scoring="f1_weighted", n_jobs=-1
-        )
+        scores = cross_val_score(calibrated, X, y, cv=5, scoring="f1_weighted", n_jobs=-1)
 
         mean_score = scores.mean()
         std_score = scores.std()
@@ -114,9 +112,7 @@ def optimize_tfidf():
         logger.info(f"MLflow Run: {run.info.run_id}")
 
         # Créer l'étude Optuna
-        study = optuna.create_study(
-            direction="maximize", sampler=optuna.samplers.TPESampler(seed=42)
-        )
+        study = optuna.create_study(direction="maximize", sampler=optuna.samplers.TPESampler(seed=42))
 
         # Optimiser
         study.optimize(objective_tfidf, n_trials=20, n_jobs=-1)

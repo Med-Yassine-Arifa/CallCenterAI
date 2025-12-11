@@ -43,9 +43,7 @@ class PIIScrubber:
             matches = re.findall(pattern, text, re.IGNORECASE)
             if matches:
                 found_pii.extend([f"{replacement}: {len(matches)} occurrence(s)"])
-                scrubbed_text = re.sub(
-                    pattern, replacement, scrubbed_text, flags=re.IGNORECASE
-                )
+                scrubbed_text = re.sub(pattern, replacement, scrubbed_text, flags=re.IGNORECASE)
         return scrubbed_text, found_pii
 
     def has_pii(self, text: str) -> bool:

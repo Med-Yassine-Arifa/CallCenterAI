@@ -307,9 +307,7 @@ jobs:
     needs: [build, docker-integration, performance]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
-    environment:
-      name: production
-      url: https://callcenter-mlops.example.com
+    
     
     steps:
       - name: ✅ Checkout Code
@@ -328,8 +326,7 @@ jobs:
           #   tfidf-service=callcenter/tfidf-service:${{ env.IMAGE_TAG }} \
           #   --namespace=production
         
-        env:
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        
       
       - name: ✅ Post-Deploy Health Checks
         run: |

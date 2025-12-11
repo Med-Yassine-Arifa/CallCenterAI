@@ -16,20 +16,8 @@ import pandas as pd
 import torch
 import yaml
 from datasets import Dataset
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    confusion_matrix,
-    f1_score,
-    precision_recall_fscore_support,
-)
-from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    EarlyStoppingCallback,
-    Trainer,
-    TrainingArguments,
-)
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, precision_recall_fscore_support
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, EarlyStoppingCallback, Trainer, TrainingArguments
 
 try:
     import joblib
@@ -44,9 +32,7 @@ sys.path.append(str(ROOT))
 # your provided setup function
 
 # Logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # CUDA / performance settings (TF32)
@@ -82,10 +68,7 @@ def load_and_prepare_data():
     logger.info(f"   Test : {dict(test_distribution)}")
 
     # compute class weights (inverse-frequency style)
-    class_weights = train_df["Topic_encoded"].value_counts().sum() / (
-        len(train_df["Topic_encoded"].unique())
-        * train_df["Topic_encoded"].value_counts()
-    )
+    class_weights = train_df["Topic_encoded"].value_counts().sum() / (len(train_df["Topic_encoded"].unique()) * train_df["Topic_encoded"].value_counts())
 
     logger.info("⚖️ Poids des classes (pour équilibrage):")
     for i, w in class_weights.items():
@@ -122,12 +105,8 @@ def create_datasets(train_df, test_df, tokenizer, params):
         }
     )
 
-    train_dataset = train_dataset.map(
-        tokenize_function, batched=True, remove_columns=["text"]
-    )
-    eval_dataset = eval_dataset.map(
-        tokenize_function, batched=True, remove_columns=["text"]
-    )
+    train_dataset = train_dataset.map(tokenize_function, batched=True, remove_columns=["text"])
+    eval_dataset = eval_dataset.map(tokenize_function, batched=True, remove_columns=["text"])
 
     train_val_split = train_dataset.train_test_split(test_size=0.2, seed=42)
 
@@ -144,9 +123,7 @@ def compute_metrics(eval_pred):
     logits, labels = eval_pred
     preds = np.argmax(logits, axis=1)
 
-    precision, recall, f1_weighted, _ = precision_recall_fscore_support(
-        labels, preds, average="weighted", zero_division=0
-    )
+    precision, recall, f1_weighted, _ = precision_recall_fscore_support(labels, preds, average="weighted", zero_division=0)
     accuracy = accuracy_score(labels, preds)
     f1_macro = f1_score(labels, preds, average="macro", zero_division=0)
     f1_micro = f1_score(labels, preds, average="micro", zero_division=0)
@@ -161,9 +138,7 @@ def compute_metrics(eval_pred):
     }
 
 
-def train_with_class_weights(
-    model, train_dataset, eval_dataset, label_encoder, params, class_weights
-):
+def train_with_class_weights(model, train_dataset, eval_dataset, label_encoder, params, class_weights):
     """Train with class weighting (a WeightedTrainer that ensures labels and weights share device)"""
     logger.info("🚀 Configuration de l'entraînement avec pondération des classes...")
 
@@ -234,9 +209,7 @@ def train_with_class_weights(
         callbacks=[
             EarlyStoppingCallback(
                 early_stopping_patience=int(params.get("early_stopping_patience", 5)),
-                early_stopping_threshold=float(
-                    params.get("early_stopping_threshold", 1e-4)
-                ),
+                early_stopping_threshold=float(params.get("early_stopping_threshold", 1e-4)),
             )
         ],
     )
@@ -268,9 +241,7 @@ def evaluate_model(trainer, eval_dataset, label_encoder):
 
     per_class_metrics = {}
     for i, class_name in enumerate(label_encoder.classes_):
-        rr = class_report.get(
-            class_name, {"precision": 0.0, "recall": 0.0, "f1-score": 0.0, "support": 0}
-        )
+        rr = class_report.get(class_name, {"precision": 0.0, "recall": 0.0, "f1-score": 0.0, "support": 0})
         per_class_metrics[class_name] = {
             "precision": rr["precision"],
             "recall": rr["recall"],
@@ -326,11 +297,7 @@ def save_results(
 
     # Inspect log_history for useful eval logs (fallback)
     if trainer.state.log_history:
-        eval_logs = [
-            log
-            for log in trainer.state.log_history
-            if any(k.startswith("eval_") for k in log.keys())
-        ]
+        eval_logs = [log for log in trainer.state.log_history if any(k.startswith("eval_") for k in log.keys())]
         if eval_logs:
             # pick the log with best eval_f1_weighted if present
             best_eval = max(eval_logs, key=lambda x: x.get("eval_f1_weighted", -1.0))
@@ -398,17 +365,11 @@ def main():
             label2id={label: i for i, label in enumerate(label_encoder.classes_)},
         )
 
-        train_dataset, val_dataset, eval_dataset = create_datasets(
-            train_df, test_df, tokenizer, params
-        )
+        train_dataset, val_dataset, eval_dataset = create_datasets(train_df, test_df, tokenizer, params)
 
-        trainer, training_time = train_with_class_weights(
-            model, train_dataset, val_dataset, label_encoder, params, class_weights
-        )
+        trainer, training_time = train_with_class_weights(model, train_dataset, val_dataset, label_encoder, params, class_weights)
 
-        class_report, conf_matrix, per_class_metrics = evaluate_model(
-            trainer, eval_dataset, label_encoder
-        )
+        class_report, conf_matrix, per_class_metrics = evaluate_model(trainer, eval_dataset, label_encoder)
 
         save_results(
             trainer,
@@ -452,17 +413,12 @@ def main():
             logger.info("✅ Model successfully logged to MLflow")
         except Exception as exc:
             logger.warning(f"⚠️ MLflow model logging failed: {exc}")
-            logger.info(
-                "   Model artifacts are saved locally in models/transformer_model_v2"
-            )
+            logger.info("   Model artifacts are saved locally in models/transformer_model_v2")
 
         # Final logs
         logger.info("✅ FINE-TUNING TRANSFORMER AVANCÉ TERMINÉ!")
         logger.info("🔬 MLflow UI: http://localhost:5000")
-        logger.info(
-            f"📊 Final eval summary: accuracy={final_eval.get('eval_accuracy', 0):.4f}, "
-            f"f1_weighted={final_eval.get('eval_f1_weighted', 0):.4f}"
-        )
+        logger.info(f"📊 Final eval summary: accuracy={final_eval.get('eval_accuracy', 0):.4f}, " f"f1_weighted={final_eval.get('eval_f1_weighted', 0):.4f}")
 
 
 if __name__ == "__main__":

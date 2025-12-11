@@ -75,9 +75,7 @@ def clean_text(text: str, remove_accents: bool = True) -> str:
     return text
 
 
-def tokenize_and_normalize(
-    texts: pd.Series, remove_stopwords: bool = False, use_lemmatization: bool = False
-) -> pd.Series:
+def tokenize_and_normalize(texts: pd.Series, remove_stopwords: bool = False, use_lemmatization: bool = False) -> pd.Series:
     """
     Tokenize and optionally remove stopwords / lemmatize.
     Returns a joined string (ready for vectorizers).
@@ -113,12 +111,8 @@ def analyze_dataset(df: pd.DataFrame) -> Dict[str, Any]:
         "total_samples": len(df),
         "columns": list(df.columns),
         "missing_values": df.isnull().sum().to_dict(),
-        "unique_categories": int(df["Topic_group"].nunique())
-        if "Topic_group" in df.columns
-        else 0,
-        "category_distribution": df["Topic_group"].value_counts().to_dict()
-        if "Topic_group" in df.columns
-        else {},
+        "unique_categories": int(df["Topic_group"].nunique()) if "Topic_group" in df.columns else 0,
+        "category_distribution": df["Topic_group"].value_counts().to_dict() if "Topic_group" in df.columns else {},
         "text_length_stats": {
             "mean": float(text_lengths.mean()),
             "median": float(text_lengths.median()),
@@ -162,9 +156,7 @@ def prepare_data() -> Tuple[pd.DataFrame, pd.DataFrame, LabelEncoder, Dict[str, 
     df = df.dropna(subset=["Document", "Topic_group"])
     print(f"Supprimé {initial_size - len(df)} lignes avec valeurs manquantes")
 
-    df["Document_clean"] = df["Document"].apply(
-        lambda t: clean_text(t, remove_accents=True)
-    )
+    df["Document_clean"] = df["Document"].apply(lambda t: clean_text(t, remove_accents=True))
 
     min_length = int(params.get("min_text_length", 10))
     initial_size = len(df)
@@ -206,9 +198,7 @@ def prepare_data() -> Tuple[pd.DataFrame, pd.DataFrame, LabelEncoder, Dict[str, 
     else:
         stratify_col = df["Topic_encoded"]
 
-    train_df, test_df = train_test_split(
-        df, test_size=test_size, random_state=random_state, stratify=stratify_col
-    )
+    train_df, test_df = train_test_split(df, test_size=test_size, random_state=random_state, stratify=stratify_col)
 
     print(f"Train: {len(train_df)}, Test: {len(test_df)}")
 

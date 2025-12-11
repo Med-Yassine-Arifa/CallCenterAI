@@ -113,9 +113,7 @@ async def predict(request: PredictionRequest):
     except Exception as e:
         logger.error(f"Erreur: {e}")
         metrics_collector.record_error("tfidf", "prediction_error")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 @app.get("/model/info", tags=["Model"])

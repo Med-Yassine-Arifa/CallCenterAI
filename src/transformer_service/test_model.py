@@ -48,9 +48,7 @@ def test_transformer_model():
     with torch.no_grad():
         for i, text in enumerate(test_texts, 1):
             # Tokenizer le texte
-            inputs = tokenizer(
-                text, return_tensors="pt", truncation=True, max_length=512
-            )
+            inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
 
             # Prédiction
             outputs = model(**inputs)

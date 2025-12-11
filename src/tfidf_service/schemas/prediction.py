@@ -9,9 +9,7 @@ from pydantic import BaseModel, Field, validator
 class PredictionRequest(BaseModel):
     """Requête de prédiction"""
 
-    text: str = Field(
-        ..., min_length=10, max_length=5000, description="Texte du ticket à classifier"
-    )
+    text: str = Field(..., min_length=10, max_length=5000, description="Texte du ticket à classifier")
 
     @validator("text")
     def text_must_not_be_empty(cls, v):
@@ -20,9 +18,7 @@ class PredictionRequest(BaseModel):
         return v.strip()
 
     class Config:
-        json_schema_extra = {
-            "example": {"text": "My laptop screen is broken and needs immediate repair"}
-        }
+        json_schema_extra = {"example": {"text": "My laptop screen is broken and needs immediate repair"}}
 
 
 class PredictionResponse(BaseModel):

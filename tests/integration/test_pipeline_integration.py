@@ -54,9 +54,7 @@ class TestPipelineIntegration:
         """Tester le status du pipeline DVC"""
 
         # Exécuter dvc status
-        result = subprocess.run(
-            ["dvc", "status"], capture_output=True, text=True, cwd="."
-        )
+        result = subprocess.run(["dvc", "status"], capture_output=True, text=True, cwd=".")
 
         # Le pipeline doit être valide (pas d'erreur)
         assert result.returncode == 0, f"Erreur DVC: {result.stderr}"

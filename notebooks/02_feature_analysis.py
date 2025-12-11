@@ -35,32 +35,20 @@ class FeatureAnalyzer:
         print("=" * 60)
 
         # Créer features de texte
-        self.train_df["word_count"] = (
-            self.train_df["Document_clean"].str.split().str.len()
-        )
+        self.train_df["word_count"] = self.train_df["Document_clean"].str.split().str.len()
         self.train_df["char_count"] = self.train_df["Document_clean"].str.len()
-        self.train_df["avg_word_length"] = self.train_df["Document_clean"].apply(
-            lambda x: np.mean([len(word) for word in x.split()]) if x.split() else 0
-        )
-        self.train_df["unique_words"] = self.train_df["Document_clean"].apply(
-            lambda x: len(set(x.split()))
-        )
-        self.train_df["unique_ratio"] = (
-            self.train_df["unique_words"] / self.train_df["word_count"]
-        ).fillna(0)
+        self.train_df["avg_word_length"] = self.train_df["Document_clean"].apply(lambda x: np.mean([len(word) for word in x.split()]) if x.split() else 0)
+        self.train_df["unique_words"] = self.train_df["Document_clean"].apply(lambda x: len(set(x.split())))
+        self.train_df["unique_ratio"] = (self.train_df["unique_words"] / self.train_df["word_count"]).fillna(0)
 
         # Charger label encoder
-        label_encoder = joblib.load("data/processed/label_encoder.pkl")
+        label_encoder = joblib.load("data/processed/label_encoder.pkl")  # noqa: B301
 
         # Map des labels
-        self.train_df["Topic"] = self.train_df["Topic_encoded"].map(
-            {i: label for i, label in enumerate(label_encoder.classes_)}
-        )
+        self.train_df["Topic"] = self.train_df["Topic_encoded"].map({i: label for i, label in enumerate(label_encoder.classes_)})
 
         # Statistiques par classe
-        stats_by_class = self.train_df.groupby("Topic")[
-            ["word_count", "char_count", "avg_word_length", "unique_ratio"]
-        ].describe()
+        stats_by_class = self.train_df.groupby("Topic")[["word_count", "char_count", "avg_word_length", "unique_ratio"]].describe()
 
         print("\n📊 Statistiques par classe:")
         print(stats_by_class)
@@ -106,17 +94,13 @@ class FeatureAnalyzer:
         print("=" * 60)
 
         # Charger label encoder
-        label_encoder = joblib.load("data/processed/label_encoder.pkl")
+        label_encoder = joblib.load("data/processed/label_encoder.pkl")  # noqa: B301
 
         # Map des labels
-        self.train_df["Topic"] = self.train_df["Topic_encoded"].map(
-            {i: label for i, label in enumerate(label_encoder.classes_)}
-        )
+        self.train_df["Topic"] = self.train_df["Topic_encoded"].map({i: label for i, label in enumerate(label_encoder.classes_)})
 
         # Extraire TF-IDF
-        vectorizer = TfidfVectorizer(
-            max_features=5000, ngram_range=(1, 2), min_df=2, max_df=0.8
-        )
+        vectorizer = TfidfVectorizer(max_features=5000, ngram_range=(1, 2), min_df=2, max_df=0.8)
 
         X_tfidf = vectorizer.fit_transform(self.train_df["Document_clean"])
         self.feature_names = vectorizer.get_feature_names_out()
@@ -138,9 +122,7 @@ class FeatureAnalyzer:
                 # Top indices
                 top_indices = np.argsort(mean_scores)[::-1][:10]
 
-                top_features = [
-                    (self.feature_names[i], mean_scores[i]) for i in top_indices
-                ]
+                top_features = [(self.feature_names[i], mean_scores[i]) for i in top_indices]
 
                 top_features_by_class[class_name] = top_features
 
@@ -167,9 +149,7 @@ class FeatureAnalyzer:
                 print("\n📊 Matrice de confusion normalisée:")
 
                 # Normaliser pour voir les pourcentages
-                conf_matrix_norm = (
-                    conf_matrix.astype("float") / conf_matrix.sum(axis=1)[:, np.newaxis]
-                )
+                conf_matrix_norm = conf_matrix.astype("float") / conf_matrix.sum(axis=1)[:, np.newaxis]
 
                 # Afficher confusion pour chaque classe
                 for i, class_name in enumerate(classes):

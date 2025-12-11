@@ -45,9 +45,7 @@ class MetricsCollector:
         # =====================================================================
 
         # Nombre de PII détectées
-        self.pii_detected = Counter(
-            "pii_detected_total", "Nombre total de PII détectées", ["pii_type"]
-        )
+        self.pii_detected = Counter("pii_detected_total", "Nombre total de PII détectées", ["pii_type"])
 
         # Distribution des types de PII
         self.pii_by_type = Counter("pii_by_type_total", "PII par type", ["pii_type"])
@@ -83,9 +81,7 @@ class MetricsCollector:
         )
 
         # Taux d\'erreurs en temps réel
-        self.error_rate = Gauge(
-            "error_rate_percent", "Taux d'erreurs en pourcentage", ["service"]
-        )
+        self.error_rate = Gauge("error_rate_percent", "Taux d'erreurs en pourcentage", ["service"])
 
         # =====================================================================
         # Métriques de Performance
@@ -111,16 +107,12 @@ class MetricsCollector:
     def record_prediction(self, service, class_name, confidence, processing_time):
         """Enregistrer une prédiction"""
         with self.lock:
-            self.predictions_by_class.labels(
-                class_name=class_name, service=service
-            ).inc()
+            self.predictions_by_class.labels(class_name=class_name, service=service).inc()
 
             self.prediction_confidence.labels(service=service).observe(confidence)
 
             # Stocker pour calculs P95/P99
-            self.predictions_buffer[service].append(
-                {"time": processing_time, "confidence": confidence, "class": class_name}
-            )
+            self.predictions_buffer[service].append({"time": processing_time, "confidence": confidence, "class": class_name})
 
             self.total_requests[service] += 1
 
@@ -152,10 +144,7 @@ class MetricsCollector:
         """Mettre à jour les statistiques calculées"""
         with self.lock:
             # Vérifier qu'il y a des données
-            if (
-                service not in self.predictions_buffer
-                or not self.predictions_buffer[service]
-            ):
+            if service not in self.predictions_buffer or not self.predictions_buffer[service]:
                 return
 
             # Extraire les latences
@@ -177,9 +166,7 @@ class MetricsCollector:
 
             # Nettoyer le buffer (pour éviter overflow mémoire)
             if len(self.predictions_buffer[service]) > 1000:
-                self.predictions_buffer[service] = self.predictions_buffer[service][
-                    -500:
-                ]
+                self.predictions_buffer[service] = self.predictions_buffer[service][-500:]
 
 
 # Instance globale

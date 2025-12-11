@@ -32,9 +32,7 @@ class TestDockerServices:
                         break
                 except requests.exceptions.RequestException:
                     if i == max_retries - 1:
-                        pytest.fail(
-                            f"❌ {service} service non disponible après {max_retries} tentatives"
-                        )
+                        pytest.fail(f"❌ {service} service non disponible après {max_retries} tentatives")
                 time.sleep(retry_interval)
 
     def test_tfidf_health(self):
@@ -73,9 +71,7 @@ class TestDockerServices:
     def test_transformer_prediction(self):
         """Tester prédiction Transformer"""
         payload = {"text": "Cannot access my account forgot password"}
-        response = requests.post(
-            f"{self.BASE_URLS['transformer']}/predict", json=payload
-        )
+        response = requests.post(f"{self.BASE_URLS['transformer']}/predict", json=payload)
         assert response.status_code == 200
         data = response.json()
         assert "predicted_class" in data

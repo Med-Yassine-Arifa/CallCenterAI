@@ -21,16 +21,12 @@ def download_kaggle_dataset():
 
     # Option 1: Avec Kaggle CLI (si configuré)
     try:
-        os.system(
-            "kaggle datasets download -d adisongoh/it-service-ticket-classification-dataset -p data/raw --unzip"
-        )
+        os.system("kaggle datasets download -d adisongoh/it-service-ticket-classification-dataset -p data/raw --unzip")
         print("✅ Dataset téléchargé avec Kaggle CLI")
     except Exception:
         print("⚠️ Kaggle CLI non configuré")
         print("📋 Étapes manuelles :")
-        print(
-            "1. Aller sur : https://www.kaggle.com/datasets/adisongoh/it-service-ticket-classification-dataset"
-        )
+        print("1. Aller sur : https://www.kaggle.com/datasets/adisongoh/it-service-ticket-classification-dataset")
         print("2. Télécharger le CSV")
         print("3. Placer le fichier dans data/raw/")
         return False

@@ -31,10 +31,10 @@ class TFIDFModelLoader:
         """Charger le modèle et l'encodeur depuis les fichiers"""
         try:
             logger.info(f"Chargement du modèle depuis {self.model_path}")
-            self.model = joblib.load(self.model_path)
+            self.model = joblib.load(self.model_path)  # noqa: B301
 
             logger.info(f"Chargement de l'encodeur depuis {self.encoder_path}")
-            self.label_encoder = joblib.load(self.encoder_path)
+            self.label_encoder = joblib.load(self.encoder_path)  # noqa: B301
 
             logger.info("✅ Modèle TF-IDF chargé avec succès")
             logger.info(f"Classes disponibles : {len(self.label_encoder.classes_)}")
@@ -68,15 +68,10 @@ class TFIDFModelLoader:
         confidence = float(max(probas))
 
         # Créer le dictionnaire de probabilités
-        probabilities = {
-            str(cat): float(prob)
-            for cat, prob in zip(self.label_encoder.classes_, probas)
-        }
+        probabilities = {str(cat): float(prob) for cat, prob in zip(self.label_encoder.classes_, probas)}
 
         # Trier par probabilité décroissante
-        probabilities = dict(
-            sorted(probabilities.items(), key=lambda x: x[1], reverse=True)
-        )
+        probabilities = dict(sorted(probabilities.items(), key=lambda x: x[1], reverse=True))
 
         return category, confidence, probabilities
 

@@ -24,9 +24,7 @@ def setup_mlflow():
     experiment = mlflow.get_experiment_by_name(DEFAULT_EXPERIMENT_NAME)
     if experiment is None:
         # Crée l'expérience avec l'emplacement des artifacts correct
-        experiment_id = mlflow.create_experiment(
-            name=DEFAULT_EXPERIMENT_NAME, artifact_location=str(MLFLOW_ARTIFACT_ROOT)
-        )
+        experiment_id = mlflow.create_experiment(name=DEFAULT_EXPERIMENT_NAME, artifact_location=str(MLFLOW_ARTIFACT_ROOT))
     else:
         experiment_id = experiment.experiment_id
 

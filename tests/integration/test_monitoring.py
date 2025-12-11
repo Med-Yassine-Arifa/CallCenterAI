@@ -34,17 +34,13 @@ class TestMonitoring:
         ]
 
         for query in queries:
-            response = requests.get(
-                "http://localhost:9090/api/v1/query", params={"query": query}
-            )
+            response = requests.get("http://localhost:9090/api/v1/query", params={"query": query})
 
             assert response.status_code == 200
             data = response.json()
 
             # Vérifier que la query retourne des résultats
-            print(
-                f"✅ Metric '{query}' collected: {len(data['data']['result'])} results"
-            )
+            print(f"✅ Metric '{query}' collected: {len(data['data']['result'])} results")
 
     def test_grafana_health(self):
         """Vérifier que Grafana fonctionne"""

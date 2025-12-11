@@ -39,34 +39,22 @@ class TestCompleteFlow:
         test_text = "My laptop screen is completely broken"
 
         # 1. TF-IDF prediction
-        response = requests.post(
-            f"{self.BASE_URLS['tfidf']}/predict", json={"text": test_text}
-        )
+        response = requests.post(f"{self.BASE_URLS['tfidf']}/predict", json={"text": test_text})
         assert response.status_code == 200
         tfidf_result = response.json()
-        logger.info(
-            f"   TF-IDF: {tfidf_result['predicted_class']} ({tfidf_result['confidence']:.3f})"
-        )
+        logger.info(f"   TF-IDF: {tfidf_result['predicted_class']} ({tfidf_result['confidence']:.3f})")
 
         # 2. Transformer prediction
-        response = requests.post(
-            f"{self.BASE_URLS['transformer']}/predict", json={"text": test_text}
-        )
+        response = requests.post(f"{self.BASE_URLS['transformer']}/predict", json={"text": test_text})
         assert response.status_code == 200
         transformer_result = response.json()
-        logger.info(
-            f"   Transformer: {transformer_result['predicted_class']} ({transformer_result['confidence']:.3f})"
-        )
+        logger.info(f"   Transformer: {transformer_result['predicted_class']} ({transformer_result['confidence']:.3f})")
 
         # 3. Agent intelligent routing
-        response = requests.post(
-            f"{self.BASE_URLS['agent']}/predict", json={"text": test_text}
-        )
+        response = requests.post(f"{self.BASE_URLS['agent']}/predict", json={"text": test_text})
         assert response.status_code == 200
         agent_result = response.json()
-        logger.info(
-            f"   Agent: {agent_result['predicted_class']} (model: {agent_result['model_used']})"
-        )
+        logger.info(f"   Agent: {agent_result['predicted_class']} (model: {agent_result['model_used']})")
 
         # Assertions
         assert tfidf_result["predicted_class"] is not None
@@ -79,9 +67,7 @@ class TestCompleteFlow:
 
         text_with_pii = "Contact john.doe@example.com or call 555-123-4567"
 
-        response = requests.post(
-            f"{self.BASE_URLS['agent']}/predict", json={"text": text_with_pii}
-        )
+        response = requests.post(f"{self.BASE_URLS['agent']}/predict", json={"text": text_with_pii})
 
         assert response.status_code == 200
         result = response.json()
@@ -97,9 +83,7 @@ class TestCompleteFlow:
 
         # Court texte → TF-IDF
         short_text = "This printer not working"
-        response = requests.post(
-            f"{self.BASE_URLS['agent']}/predict", json={"text": short_text}
-        )
+        response = requests.post(f"{self.BASE_URLS['agent']}/predict", json={"text": short_text})
         assert response.json()["model_used"] == "tfidf"
         logger.info(f"   Short text routed to: {response.json()['model_used']}")
 
@@ -113,9 +97,7 @@ class TestCompleteFlow:
                 "but the issue keeps happening. Please assist."
             ]
         )
-        response = requests.post(
-            f"{self.BASE_URLS['agent']}/predict", json={"text": long_text}
-        )
+        response = requests.post(f"{self.BASE_URLS['agent']}/predict", json={"text": long_text})
         assert response.json()["model_used"] == "distilbert"
         logger.info(f"   Long text routed to: {response.json()['model_used']}")
 
@@ -164,9 +146,7 @@ class TestCompleteFlow:
         # Exécuter 3 fois
         predictions = []
         for i in range(3):
-            response = requests.post(
-                f"{self.BASE_URLS['agent']}/predict", json={"text": test_text}
-            )
+            response = requests.post(f"{self.BASE_URLS['agent']}/predict", json={"text": test_text})
             predictions.append(response.json()["predicted_class"])
 
         # Tous les résultats doivent être identiques
@@ -194,9 +174,7 @@ class TestCompleteFlow:
 
             sla = slas[service]
             status = "✅" if elapsed < sla else "⚠️"
-            logger.info(
-                f"   {service}: {elapsed*1000:.0f}ms (SLA: {sla*1000:.0f}ms) {status}"
-            )
+            logger.info(f"   {service}: {elapsed*1000:.0f}ms (SLA: {sla*1000:.0f}ms) {status}")
 
             # Warning but not failure for SLA
             if elapsed > sla * 1.5:

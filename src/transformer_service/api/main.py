@@ -107,9 +107,7 @@ async def predict(request: PredictionRequest):
     try:
         if not model_loader.is_loaded():
             REQUEST_COUNT.labels(endpoint="/predict", method="POST", status="503").inc()
-            metrics_collector.metrics_collector.record_error(
-                "transformer", "service_unavailable"
-            )
+            metrics_collector.metrics_collector.record_error("transformer", "service_unavailable")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Modèle non chargé",
@@ -148,9 +146,7 @@ async def predict(request: PredictionRequest):
     except Exception as e:
         logger.error(f"Erreur prédiction: {e}")
         REQUEST_COUNT.labels(endpoint="/predict", method="POST", status="500").inc()
-        metrics_collector.metrics_collector.record_error(
-            "transformer", "prediction_error"
-        )
+        metrics_collector.metrics_collector.record_error("transformer", "prediction_error")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e),

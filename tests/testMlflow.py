@@ -34,9 +34,7 @@ def test_mlflow_tracking():
         mlflow.log_metric("accuracy", accuracy)
 
         # Sauvegarder le modèle
-        mlflow.sklearn.log_model(
-            model, "test_model", registered_model_name="test_callcenter_model"
-        )
+        mlflow.sklearn.log_model(model, "test_model", registered_model_name="test_callcenter_model")
 
         print(f"✅ Run ID: {run.info.run_id}")
         print(f"✅ Accuracy: {accuracy:.4f}")

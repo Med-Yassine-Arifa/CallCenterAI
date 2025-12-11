@@ -7,14 +7,7 @@ import pandas as pd
 import yaml
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    confusion_matrix,
-    f1_score,
-    precision_score,
-    recall_score,
-)
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, precision_score, recall_score
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
@@ -82,9 +75,7 @@ def create_tfidf_pipeline(params):
 
 
 # 🛑 FIX APPLIED HERE: Fit base_pipeline first to extract the fitted vectorizer safely.
-def train_and_evaluate(
-    base_pipeline, pipeline, train_df, test_df, label_encoder, params
-):
+def train_and_evaluate(base_pipeline, pipeline, train_df, test_df, label_encoder, params):
     """Entraîner et évaluer le modèle"""
     print(" Entraînement du modèle...")
 
@@ -133,9 +124,7 @@ def train_and_evaluate(
     print(f"   F1-score macro test: {metrics['test_f1_macro']:.4f}")
     print(f"   Features extraites: {metrics['n_features']}")
 
-    class_report = classification_report(
-        y_test, test_pred, target_names=label_encoder.classes_, output_dict=True
-    )
+    class_report = classification_report(y_test, test_pred, target_names=label_encoder.classes_, output_dict=True)
 
     conf_matrix = confusion_matrix(y_test, test_pred)
 
@@ -144,9 +133,7 @@ def train_and_evaluate(
 
 
 # 🛑 FIX APPLIED HERE: Access fitted vectorizer from base_pipeline
-def save_model_and_metrics(
-    base_pipeline, pipeline, metrics, class_report, conf_matrix, label_encoder, params
-):
+def save_model_and_metrics(base_pipeline, pipeline, metrics, class_report, conf_matrix, label_encoder, params):
     """Sauvegarder modèle, vectorizer et métriques"""
     print(" Sauvegarde du modèle et métriques...")
 
@@ -200,9 +187,7 @@ def main():
             metrics,
             class_report,
             conf_matrix,
-        ) = train_and_evaluate(
-            base_pipeline, pipeline, train_df, test_df, label_encoder, params
-        )
+        ) = train_and_evaluate(base_pipeline, pipeline, train_df, test_df, label_encoder, params)
 
         mlflow.log_metrics(metrics)
 

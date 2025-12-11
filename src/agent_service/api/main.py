@@ -19,9 +19,7 @@ from ..services.router import ModelRouter
 from ..utils.pii_scrubber import PIIScrubber
 
 # Logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # URLs des services (venant de docker-compose)
@@ -29,13 +27,9 @@ TFIDF_BASE_URL = os.getenv("TFIDF_URL", "http://tfidf-service:8001")
 TRANSFORMER_BASE_URL = os.getenv("TRANSFORMER_URL", "http://transformer-service:8002")
 
 # Métriques
-REQUEST_COUNT = Counter(
-    "agent_requests_total", "Total requêtes Agent", ["endpoint", "model_used", "status"]
-)
+REQUEST_COUNT = Counter("agent_requests_total", "Total requêtes Agent", ["endpoint", "model_used", "status"])
 
-REQUEST_DURATION = Histogram(
-    "agent_request_duration_seconds", "Durée requêtes Agent", ["model_used"]
-)
+REQUEST_DURATION = Histogram("agent_request_duration_seconds", "Durée requêtes Agent", ["model_used"])
 
 PII_DETECTED_COUNT = Counter("agent_pii_detected_total", "PII détectées")
 
@@ -91,17 +85,11 @@ async def health_check():
         # Service Transformer
         try:
             transformer_health = await client.get(f"{TRANSFORMER_BASE_URL}/health")
-            transformer_status = (
-                "healthy" if transformer_health.status_code == 200 else "unhealthy"
-            )
+            transformer_status = "healthy" if transformer_health.status_code == 200 else "unhealthy"
         except Exception:
             transformer_status = "unreachable"
 
-    overall_status = (
-        "healthy"
-        if tfidf_status == "healthy" or transformer_status == "healthy"
-        else "unhealthy"
-    )
+    overall_status = "healthy" if tfidf_status == "healthy" or transformer_status == "healthy" else "unhealthy"
 
     return HealthResponse(
         status=overall_status,
@@ -161,9 +149,7 @@ async def predict(request: AgentRequest):
             else:
                 reason = "default"
 
-            metrics_collector.metrics_collector.record_routing(
-                model=model_used, reason=reason
-            )
+            metrics_collector.metrics_collector.record_routing(model=model_used, reason=reason)
             logger.info(f"Routing: {model_used} - {reason}")
 
         except Exception as e:
@@ -172,9 +158,7 @@ async def predict(request: AgentRequest):
         # 3. Appel au service de prédiction
         async with httpx.AsyncClient(timeout=30.0) as client:
             with REQUEST_DURATION.labels(model_used=model_used).time():
-                response = await client.post(
-                    f"{url}/predict", json={"text": scrubbed_text}
-                )
+                response = await client.post(f"{url}/predict", json={"text": scrubbed_text})
 
             if response.status_code != 200:
                 REQUEST_COUNT.labels(
@@ -191,14 +175,10 @@ async def predict(request: AgentRequest):
 
         # 4. Construction de la réponse
         processing_time_ms = (time.time() - start_time) * 1000
-        REQUEST_COUNT.labels(
-            endpoint="/predict", model_used=model_used, status="200"
-        ).inc()
+        REQUEST_COUNT.labels(endpoint="/predict", model_used=model_used, status="200").inc()
 
         try:
-            metrics_collector.metrics_collector.record_latency(
-                model=model_used, latency=processing_time_ms / 1000
-            )
+            metrics_collector.metrics_collector.record_latency(model=model_used, latency=processing_time_ms / 1000)
         except Exception as e:
             logger.error(f"Erreur latency metrics: {e}")
 
@@ -215,13 +195,9 @@ async def predict(request: AgentRequest):
 
     except httpx.HTTPError as e:
         logger.error(f"Erreur HTTP: {e}")
-        REQUEST_COUNT.labels(
-            endpoint="/predict", model_used=model_used, status="503"
-        ).inc()
+        REQUEST_COUNT.labels(endpoint="/predict", model_used=model_used, status="503").inc()
         try:
-            metrics_collector.metrics_collector.record_error(
-                "agent", "service_unavailable"
-            )
+            metrics_collector.metrics_collector.record_error("agent", "service_unavailable")
         except Exception:
             pass
         raise HTTPException(
@@ -231,13 +207,9 @@ async def predict(request: AgentRequest):
 
     except Exception as e:
         logger.error(f"Erreur: {e}", exc_info=True)
-        REQUEST_COUNT.labels(
-            endpoint="/predict", model_used=model_used, status="500"
-        ).inc()
+        REQUEST_COUNT.labels(endpoint="/predict", model_used=model_used, status="500").inc()
         try:
-            metrics_collector.metrics_collector.record_error(
-                "agent", "prediction_error"
-            )
+            metrics_collector.metrics_collector.record_error("agent", "prediction_error")
         except Exception:
             pass
         raise HTTPException(
