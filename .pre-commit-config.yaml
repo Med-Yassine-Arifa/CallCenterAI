@@ -1,27 +1,27 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: 23.11.0
-    hooks:
-      - id: black
-        language_version: python3.11
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        args: ["--profile", "black"]
-
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        args: [--max-line-length=150, --extend-ignore=E203]
-
-  #- repo: https://github.com/pycqa/bandit
-  #  rev: 1.8.6
+  #- repo: https://github.com/psf/black
+  #  rev: 23.11.0
   #  hooks:
-  #    - id: bandit
-  #      args: ["--format", "json", "-ll", "--exclude", "tests"]
+  #    - id: black
+  #      language_version: python3.11
+#
+  #- repo: https://github.com/pycqa/isort
+  #  rev: 5.12.0
+  #  hooks:
+  #    - id: isort
+  #      args: ["--profile", "black"]
+#
+  #- repo: https://github.com/pycqa/flake8
+  #  rev: 6.1.0
+  #  hooks:
+  #    - id: flake8
+  #      args: [--max-line-length=150, --extend-ignore=E203]
+
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.8.6
+    hooks:
+      - id: bandit
+        args: ["--format", "json", "-ll", "--exclude", "tests"]
 
   #- repo: local
   #  hooks:
