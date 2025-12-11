@@ -59,11 +59,12 @@ COPY --from=builder /usr/local /usr/local
 
 WORKDIR /app
 
-# Copy source code, models, and data
+# Copy source code
 COPY  src/transformer_service ./src/transformer_service
 COPY  src/monitoring ./src/monitoring
-COPY  models/transformer_model_v2 ./models/transformer
-COPY  data/processed/label_encoder.pkl ./data/processed/
+# Models and encoders are loaded at runtime if not present
+# COPY  models/transformer_model_v2 ./models/transformer
+# COPY  data/processed/label_encoder.pkl ./data/processed/
 
 USER appuser
 

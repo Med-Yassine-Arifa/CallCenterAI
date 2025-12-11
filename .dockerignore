@@ -8,8 +8,13 @@ venv/
 env/
 # Data
 data/raw/*.csv
+data/processed/*.pkl
 
 *.joblib
+# Models (loaded at runtime if missing)
+models/tfidf_model_optimized.pkl
+models/tfidf_vectorizer_optimized.pkl
+models/transformer_model_v2/
 # MLflow
 upload.py
 

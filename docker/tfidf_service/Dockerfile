@@ -52,12 +52,13 @@ COPY --from=builder /usr/local /usr/local
 
 WORKDIR /app
 
-# Copy source code, models, and data
+# Copy source code
 COPY  src/tfidf_service ./src/tfidf_service
 COPY  src/monitoring ./src/monitoring
-COPY  models/tfidf_model_optimized.pkl ./models/
-COPY  models/tfidf_vectorizer_optimized.pkl ./models/
-COPY  data/processed/label_encoder.pkl ./data/processed/
+# Models and encoders are loaded at runtime if not present
+# COPY  models/tfidf_model_optimized.pkl ./models/
+# COPY  models/tfidf_vectorizer_optimized.pkl ./models/
+# COPY  data/processed/label_encoder.pkl ./data/processed/
 
 USER appuser
 
